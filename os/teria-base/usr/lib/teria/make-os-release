@@ -1,6 +1,6 @@
 #!/bin/sh
-# Erzeugt /usr/lib/os-release fuer Teria aus dem umgeleiteten Ubuntu-Original.
-# ID=ubuntu bleibt erhalten, damit apt, PPAs und Ubuntu-Werkzeuge weiter funktionieren.
+# Erzeugt /usr/lib/os-release fuer Teria aus dem umgeleiteten Original (Ubuntu oder Debian).
+# Auf Ubuntu bleibt ID=ubuntu (apt, PPAs); auf Debian wird ID=teria, ID_LIKE=debian.
 set -e
 ORIG=/usr/lib/os-release.ubuntu
 OUT=/usr/lib/os-release
@@ -8,11 +8,26 @@ OUT=/usr/lib/os-release
 VER=$(cat /usr/lib/teria/version 2>/dev/null || echo 0)
 # shellcheck source=/dev/null
 UVER=$(. "$ORIG"; echo "$VERSION_ID")
+# shellcheck source=/dev/null
+BASE=$(. "$ORIG"; echo "$ID")
+# shellcheck source=/dev/null
+BASENAME=$(. "$ORIG"; echo "$NAME")
 tmp=$(mktemp "$OUT.XXXXXX")
 {
-    grep -v -E '^(NAME|PRETTY_NAME|VARIANT|VARIANT_ID|HOME_URL|BUG_REPORT_URL|SUPPORT_URL|LOGO|IMAGE_VERSION|BUILD_ID)=' "$ORIG"
+    if [ "$BASE" = debian ]; then
+        # Eigenstaendiges Teria: eigene ID, Debian als Verwandter
+        grep -v -E '^(ID|ID_LIKE|NAME|PRETTY_NAME|VARIANT|VARIANT_ID|HOME_URL|BUG_REPORT_URL|SUPPORT_URL|LOGO|IMAGE_VERSION|BUILD_ID|VERSION|VERSION_ID)=' "$ORIG"
+        echo "ID=teria"
+        echo "ID_LIKE=debian"
+        echo "VERSION=\"$VER\""
+        echo "VERSION_ID=\"$VER\""
+        echo "DEBIAN_VERSION_ID=\"$UVER\""
+    else
+        # Schicht ueber Ubuntu: ID=ubuntu bleibt fuer apt und PPAs
+        grep -v -E '^(NAME|PRETTY_NAME|VARIANT|VARIANT_ID|HOME_URL|BUG_REPORT_URL|SUPPORT_URL|LOGO|IMAGE_VERSION|BUILD_ID)=' "$ORIG"
+    fi
     echo "NAME=\"Teria\""
-    echo "PRETTY_NAME=\"Teria $VER (Ubuntu $UVER, Switchroot L4T)\""
+    echo "PRETTY_NAME=\"Teria $VER ($BASENAME $UVER, Switchroot L4T)\""
     echo "VARIANT=\"Teria\""
     echo "VARIANT_ID=teria"
     echo "BUILD_ID=$VER"

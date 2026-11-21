@@ -1,0 +1,13 @@
+[Unit]
+Description=Teria: Erststart (Partition vergroessern, SSH-Schluessel)
+ConditionPathExists=!/var/lib/teria/firstboot-done
+After=local-fs.target
+Before=ssh.service lightdm.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/teria/firstboot
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

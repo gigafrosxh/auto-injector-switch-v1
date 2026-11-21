@@ -1,0 +1,27 @@
+#!/bin/bash
+# Teria Erststart: laeuft einmal nach dem Flashen.
+#  - Root-Dateisystem auf die ganze Linux-Partition vergroessern (nur auf einer SD-Karte)
+#  - SSH-Hostschluessel und Maschinen-ID erzeugen
+set -u
+# shellcheck source=os/teria-base/usr/lib/teria/lib.sh
+. "${TERIA_LIB:-/usr/lib/teria}/lib.sh"
+log() { echo "teria-firstboot: $*"; }
+
+src=$(findmnt -no SOURCE /)
+[ "$src" = /dev/root ] && src=/dev/$(lsblk -no KNAME,LABEL | awk '$2=="SWR-TER"{print $1; exit}')
+disk=$(root_disk)
+if [ -n "$disk" ] && [ "$(rd "/sys/block/$disk/device/type")" = SD ]; then
+    log "vergroessere $src (SD-Karte $disk)"
+    resize2fs "$src" || log "resize2fs fehlgeschlagen, System laeuft trotzdem weiter"
+elif [ -n "$disk" ] && [ "$(rd "/sys/block/$disk/device/type")" = MMC ]; then
+    log "rootfs liegt auf dem eMMC: keine Aenderung"
+else
+    log "rootfs auf $src ($disk): Groesse bleibt (z. B. USB-Teststart)"
+fi
+
+[ -s /etc/machine-id ] || systemd-machine-id-setup
+[ -e /var/lib/dbus/machine-id ] || ln -sf /etc/machine-id /var/lib/dbus/machine-id
+ls /etc/ssh/ssh_host_*_key >/dev/null 2>&1 || ssh-keygen -A
+
+mkdir -p /var/lib/teria && touch /var/lib/teria/firstboot-done
+log "fertig"

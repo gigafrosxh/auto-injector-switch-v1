@@ -3,20 +3,24 @@
 ```
  PC / Mac                              Nintendo Switch V1
  ─────────────                         ───────────────────────────────────────────
- injector/  ── RCM (USB 0955:7321) ──▶ Hekate 6.5.5 (RAM)
- (Payload nur mit SHA256 + Freigabe)        │  bootloader/ini/teria.ini   (Teria-Eintrag)
-                                            │  bootloader/ini/L4T-noble.ini (Original, unverändert)
+ injector/  ── RCM (USB 0955:7321) ──▶ Hekate (RAM)
+ (Payload nur mit SHA256 + Freigabe)        │  bootloader/ini/teria.ini  → /switchroot/teria/
                                             ▼
-                                      Switchroot-Kernel 4.9.140-l4t, L4T R32.3.1
+                                      bl31 (ATF) → bl33 (U-Boot) → boot.scr
                                             ▼
-                                      Ubuntu Noble 24.04 rootfs (SD, ext4 SWR-NOB)
-                                       └─ teria-base (.deb)
-                                           ├─ /usr/bin/teria             Werkzeug
-                                           ├─ teria-emmc-guard.service   eMMC schreibgeschützt
-                                           ├─ udev-Regel                 eMMC sofort sperren + ausblenden
-                                           ├─ os-release (dpkg-divert)   „Teria 0.x“
-                                           └─ motd                       Begrüßung
+                                      Switchroot-Kernel 4.9.140-l4t + initramfs + nx-plat.dtimg
+                                            ▼  sucht Partition mit Label SWR-TER
+                                      Teria rootfs (SD, ext4 SWR-TER)
+                                       ├─ Debian trixie arm64            Basis, Xfce, NetworkManager, SSH
+                                       ├─ L4T-Repo (nur Geräteteile)     switch-bsp, nvidia-l4t-* 32.3.1,
+                                       │                                 Xorg 1.20 + libx11 (L4T), joycond
+                                       └─ teria-base                     teria, eMMC-Schutz, Erststart, os-release
 ```
+
+Build: `tools/build-image.sh` (mmdebstrap, nativ auf arm64 in der CI) → ext4-Image `SWR-TER` →
+`switchroot/install/l4t.NN` (Hekate „Flash Linux“) + Bootstack aus `switch-bsp` + Teria-Logos → `teria-<v>-sd.zip`.
+
+Das Paket `teria-base` läuft auch weiterhin als Schicht in Switchroot Ubuntu (dort bleibt `ID=ubuntu`).
 
 | Pfad | Inhalt |
 |---|---|
@@ -24,7 +28,8 @@
 | `boot/teria/` | Hekate-Eintrag, Icon, Bootlogo |
 | `injector/windows/` | Auto-Injector für Windows (PowerShell + TegraRcmSmash) |
 | `tools/` | Bau- und Installationsskripte |
-| `docs/` | Analyse, Architektur, Sicherheit |
+| `os/image/` | Paketlisten, apt-Pins, L4T-Schlüssel, Dateien für das rootfs |
+| `docs/` | Installation, Analyse, Architektur, Sicherheit |
 | `release-notes/` | Texte für GitHub-Releases |
 
 Versionen: SemVer unter 1.0 (`0.MINOR.PATCH`). Release-Candidates gibt es nur vor einer

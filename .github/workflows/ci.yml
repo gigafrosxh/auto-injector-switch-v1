@@ -2,9 +2,15 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'image/**']
     tags: ['v*']
   pull_request:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: 'Teria-Image bauen'
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -18,7 +24,7 @@ jobs:
       - name: shellcheck
         run: |
           shellcheck -x -s bash os/teria-base/usr/bin/teria os/teria-base/usr/lib/teria/lib.sh \
-            os/teria-base/usr/lib/teria/emmc-guard tools/*.sh
+            os/teria-base/usr/lib/teria/emmc-guard os/teria-base/usr/lib/teria/firstboot tools/*.sh
           shellcheck -s sh os/teria-base/usr/lib/teria/make-os-release os/teria-base/etc/update-motd.d/05-teria \
             os/teria-base/DEBIAN/postinst os/teria-base/DEBIAN/prerm os/teria-base/DEBIAN/postrm
 
@@ -31,7 +37,6 @@ jobs:
       - name: Pakete bauen
         run: |
           tools/build-deb.sh "${{ steps.v.outputs.version }}"
-          tools/build-boot-zip.sh "${{ steps.v.outputs.version }}"
           tools/build-injector-zip.sh "${{ steps.v.outputs.version }}"
           ls -la dist
 
@@ -44,6 +49,12 @@ jobs:
             teria version; teria guard status
             apt-get -qq remove -y teria-base >/dev/null
             . /etc/os-release; echo "nach Entfernen: $PRETTY_NAME"; [ "$NAME" = Ubuntu ]'
+          docker run --rm -v "$PWD/dist:/dist" debian:trixie bash -euc '
+            apt-get -qq update >/dev/null
+            apt-get -qq install -y /dist/teria-base_*_all.deb >/dev/null
+            . /etc/os-release; echo "$PRETTY_NAME"; [ "$ID" = teria ]; [ "$ID_LIKE" = debian ]
+            apt-get -qq remove -y teria-base >/dev/null
+            . /etc/os-release; [ "$ID" = debian ]; echo "nach Entfernen: $PRETTY_NAME"'
 
       - uses: actions/upload-artifact@v4
         with:
@@ -63,3 +74,55 @@ jobs:
             notes="release-notes/${tag#v}.md"; [ -f "$notes" ] || notes=/dev/null
             gh release create "$tag" dist/* --title "Teria $tag" --notes-file "$notes" $pre
           fi
+
+  image:
+    # Eigenstaendiges Teria-Image (Debian trixie arm64), nativ auf arm64 gebaut
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/image/') || (github.event_name == 'workflow_dispatch' && inputs.image)
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Werkzeuge
+        run: |
+          sudo apt-get -qq update
+          sudo apt-get -qq install -y mmdebstrap debian-archive-keyring e2fsprogs zip gnupg dpkg-dev >/dev/null
+
+      - name: Version
+        id: v
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then v="${GITHUB_REF#refs/tags/v}"; else v="$(cat VERSION)-dev.${GITHUB_RUN_NUMBER}"; fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Image bauen
+        run: sudo tools/build-image.sh "${{ steps.v.outputs.version }}" dist
+
+      - name: Image pruefen
+        run: |
+          v="${{ steps.v.outputs.version }}"
+          unzip -l "dist/teria-$v-sd.zip"
+          mkdir -p /tmp/chk && cd /tmp/chk && unzip -q "$GITHUB_WORKSPACE/dist/teria-$v-sd.zip"
+          sha256sum -c SHA256SUMS
+          cat switchroot/install/l4t.* > /tmp/teria.img
+          sudo e2fsck -fn /tmp/teria.img
+          [ "$(sudo e2label /tmp/teria.img)" = SWR-TER ]
+          sudo debugfs -R 'cat /usr/lib/os-release' /tmp/teria.img
+          sudo debugfs -R 'ls -l /lib/modules' /tmp/teria.img
+          grep -E '^(nvidia-l4t-x11|xserver-xorg-core|libx11-6|switch-bsp|teria-base)\b' "$GITHUB_WORKSPACE/dist/teria-$v.manifest"
+          ls -la "$GITHUB_WORKSPACE/dist"
+          size=$(stat -c %s "$GITHUB_WORKSPACE/dist/teria-$v-sd.zip"); echo "ZIP: $size Bytes"
+          [ "$size" -lt 2147483648 ] || { echo "ZIP groesser als 2 GiB (GitHub-Limit)"; exit 1; }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: teria-image-${{ steps.v.outputs.version }}
+          path: dist/teria-*
+          compression-level: 0
+          retention-days: 7
+
+      - name: Image an Release anhaengen
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF#refs/tags/}" dist/teria-*-sd.zip dist/teria-*.manifest --clobber
