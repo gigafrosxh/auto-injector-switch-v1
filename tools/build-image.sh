@@ -116,7 +116,12 @@ echo 'teria:teria' | in_root chpasswd
 in_root groupadd -rf autologin
 in_root usermod -aG autologin teria
 in_root systemctl enable lightdm.service NetworkManager.service ssh.service teria-firstboot.service teria-emmc-guard.service teria-setup.service teria-bootlog.timer
-in_root systemctl enable nv-l4t-usb-device-mode.service || echo "Hinweis: USB-Geraetemodus nicht vorhanden"
+# Nur der L4T-Laufzeitdienst darf dhcpd starten, gebunden an l4tbr0.
+in_root systemctl mask isc-dhcp-server.service isc-dhcp-server6.service
+for tool in /sbin/brctl /sbin/ifconfig /sbin/route /usr/sbin/dhcpd /sbin/losetup; do
+    in_root test -x "$tool" || { echo "USB-Gerätemodus benötigt $tool" >&2; exit 1; }
+done
+in_root systemctl enable nv-l4t-usb-device-mode.service
 in_root systemctl set-default graphical.target
 
 log "Aufraeumen"

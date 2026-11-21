@@ -11,6 +11,10 @@ tzdata
 ca-certificates
 openssh-server
 network-manager
+# L4T-USB-Brücke und DHCP für den direkt angeschlossenen Rechner (#33)
+bridge-utils
+net-tools
+isc-dhcp-server
 wpasupplicant
 iw
 rfkill
