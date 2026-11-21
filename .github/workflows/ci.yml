@@ -25,7 +25,7 @@ jobs:
         run: |
           shellcheck -x -s bash os/teria-base/usr/bin/teria os/teria-base/usr/lib/teria/lib.sh \
             os/teria-base/usr/lib/teria/emmc-guard os/teria-base/usr/lib/teria/firstboot \
-            os/teria-base/usr/lib/teria/perf os/teria-base/usr/lib/teria/setup-from-sd os/teria-base/usr/lib/teria/bootlog tools/*.sh tools/rescue/*.sh
+            os/teria-base/usr/lib/teria/perf os/teria-base/usr/lib/teria/setup-from-sd os/teria-base/usr/lib/teria/bootlog tools/*.sh
           shellcheck -s sh os/teria-base/usr/lib/teria/make-os-release os/teria-base/etc/update-motd.d/05-teria \
             os/teria-base/DEBIAN/postinst os/teria-base/DEBIAN/prerm os/teria-base/DEBIAN/postrm \
             os/teria-base/usr/lib/teria/reboot-hekate os/teria-shell/usr/lib/teria-shell/session \

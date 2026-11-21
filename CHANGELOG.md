@@ -4,6 +4,18 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-21
+
+### Behoben
+- Teria blieb beim Start mit Debian-systemd 257 auf dem Switch-Kernel 4.9 hängen: `SYSTEMD_CGROUP_ENABLE_LEGACY_FORCE=1` im Booteintrag (#31)
+- Ohne Tastatur war keine Anmeldung möglich (#32): automatische Anmeldung, Bildschirmtastatur im Anmeldebildschirm, kein erzwungener Passwortwechsel mehr
+- Grafische Oberfläche startete nicht: LightDM wartet nicht mehr auf die Grafik-Meldung von logind, der Bildschirm (fbdev) gilt als Grafikgerät von seat0
+
+### Neu
+- `teria-setup.txt` auf der SD: WLAN, Passwort und automatische Anmeldung am PC/Mac eintragen; Passwörter werden nach der Übernahme gelöscht
+- Bootprotokolle unter `teria-logs/` auf der SD (letzte 5 Starts)
+- USB-Gerätemodus (Netzwerk über USB-C zum PC/Mac) ist eingeschaltet
+
 ## [0.3.0] - 2026-11-21
 
 ### Neu
