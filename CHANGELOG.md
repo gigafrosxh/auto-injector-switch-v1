@@ -4,6 +4,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.3.6] - 2026-11-21
+
+### Dokumentiert
+- Paketstände, Xorg-ABI und APT-Pins für L4T unter Debian trixie sind mit dem Release-Manifest abgeglichen (#29).
+
 ## [0.3.5] - 2026-11-21
 
 ### Behoben
