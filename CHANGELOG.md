@@ -4,6 +4,15 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-11-21
+
+### Behoben
+- Ein über die SD eingerichtetes WPA-Profil behält seinen Schlüssel beim nächsten Start (#35).
+- WLAN-Status und Netzwerksuche lesen Doppelpunkte und Rückstriche in Netzwerknamen korrekt (#36).
+- In Mesh-Netzen zeigt die Netzwerkliste den verbundenen Zugangspunkt und dessen Signalstärke (#37).
+- Netze mit Apostrophen und Rückstrichen lassen sich aus dem WLAN-Dialog auswählen und verbinden (#38).
+- Aus #33 sind außerdem die Filter für Xfce-Dialoge und den App-Verlauf, die Ladeleistungsanzeige, die Rechte für die Helligkeitssteuerung und den Store sowie die Umstellung von zram auf lz4 enthalten.
+
 ## [0.3.1] - 2026-11-21
 
 ### Behoben

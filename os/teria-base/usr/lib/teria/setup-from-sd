@@ -27,24 +27,61 @@ fi
 
 val() { sed -n "s/^[[:space:]]*$1[[:space:]]*=[[:space:]]*//p" "$F" | tr -d '\r' | sed 's/^\xEF\xBB\xBF//' | tail -n1; }
 ssid=$(val wlan_name); psk=$(val wlan_passwort); pw=$(val passwort); auto=$(val automatische_anmeldung)
-changed=0
+clear_fields=()
+status=0
 
-if [ -n "$ssid" ]; then
+save_wifi() (
+    local safe nm security=
     safe=$(printf '%s' "$ssid" | tr -c 'A-Za-z0-9._-' '_')
     nm=/etc/NetworkManager/system-connections/teria-$safe.nmconnection
-    {
-        echo "[connection]"; echo "id=$ssid"; echo "type=wifi"; echo "autoconnect=true"
-        echo; echo "[wifi]"; echo "mode=infrastructure"; echo "ssid=$ssid"
-        if [ -n "$psk" ]; then echo; echo "[wifi-security]"; echo "key-mgmt=wpa-psk"; echo "psk=$psk"; fi
-        echo; echo "[ipv4]"; echo "method=auto"; echo; echo "[ipv6]"; echo "method=auto"
-    } > "$nm"
-    chmod 600 "$nm"
-    log "WLAN \"$ssid\" eingerichtet"
-    changed=1
+    if [ -z "$psk" ] && [ -f "$nm" ]; then
+        # Bis 0.3.1 blieb der WLAN-Name nach der Übernahme auf der SD stehen.
+        log "Vorhandenes WLAN-Profil beibehalten"
+        return 0
+    fi
+    tmp=$(mktemp "$(dirname "$nm")/.teria-wlan.XXXXXX") || return 1
+    trap 'rm -f "$tmp"' EXIT
+    if [ -n "$psk" ]; then
+        security="[wifi-security]
+key-mgmt=wpa-psk
+psk=$psk"
+    fi
+    cat > "$tmp" <<EOF || return 1
+[connection]
+id=$ssid
+type=wifi
+autoconnect=true
+
+[wifi]
+mode=infrastructure
+ssid=$ssid
+
+$security
+[ipv4]
+method=auto
+
+[ipv6]
+method=auto
+EOF
+    mv -fT "$tmp" "$nm" || return 1
+    log "WLAN eingerichtet"
+)
+
+if [ -n "$ssid" ]; then
+    if save_wifi; then
+        clear_fields+=(-e 's/^\([[:space:]]*wlan_name[[:space:]]*=\).*/\1/' -e 's/^\([[:space:]]*wlan_passwort[[:space:]]*=\).*/\1/')
+    else
+        log "WLAN-Profil konnte nicht gespeichert werden"
+        status=1
+    fi
 fi
 if [ -n "$pw" ]; then
-    printf '%s:%s\n' "$USER_NAME" "$pw" | chpasswd && chage -d "$(date +%Y-%m-%d)" "$USER_NAME" && log "Passwort fuer $USER_NAME gesetzt"
-    changed=1
+    if printf '%s:%s\n' "$USER_NAME" "$pw" | chpasswd && chage -d "$(date +%Y-%m-%d)" "$USER_NAME"; then
+        clear_fields+=(-e 's/^\([[:space:]]*passwort[[:space:]]*=\).*/\1/')
+        log "Passwort fuer $USER_NAME gesetzt"
+    else
+        status=1
+    fi
 fi
 case "$auto" in
     ja|Ja|JA|yes|1)
@@ -55,11 +92,9 @@ case "$auto" in
         rm -f /etc/lightdm/lightdm.conf.d/70-teria-autologin.conf ;;
 esac
 
-if [ "$changed" = 1 ]; then
-    # Passwoerter aus der Datei entfernen, Rest stehen lassen
-    sed -i -e 's/^\([[:space:]]*wlan_passwort[[:space:]]*=\).*/\1/' -e 's/^\([[:space:]]*passwort[[:space:]]*=\).*/\1/' "$F"
-    echo "# Uebernommen am $(date '+%d.%m.%Y %H:%M'). Passwoerter wurden aus dieser Datei entfernt." >> "$F"
+if [ "${#clear_fields[@]}" -gt 0 ]; then
+    sed -i "${clear_fields[@]}" "$F" || status=1
 fi
 sync
 umount "$SD" 2>/dev/null
-exit 0
+exit "$status"

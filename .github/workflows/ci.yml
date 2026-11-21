@@ -33,6 +33,12 @@ jobs:
           python3 -m py_compile os/teria-shell/usr/bin/teria-shell os/teria-shell/usr/lib/teria-shell/server.py os/teria-base/usr/lib/teria/pkg
           python3 -c "import json; json.load(open('os/teria-shell/usr/lib/teria-shell/catalog.json'))"
 
+      - name: WLAN-Regressionstests
+        run: |
+          python3 -B tests/test_wifi.py
+          shellcheck tests/setup-from-sd.sh
+          bash tests/setup-from-sd.sh
+
       - name: Version aus Tag
         id: v
         run: |

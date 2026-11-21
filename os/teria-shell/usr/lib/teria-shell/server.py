@@ -95,16 +95,38 @@ def temps():
     return out
 
 
+def nmcli_rows(fields, *args, timeout=10):
+    rc, out = run(["env", "LC_ALL=C", "nmcli", "-t", "-e", "yes", "-f", fields, *args], timeout=timeout)
+    if rc:
+        return
+    count = len(fields.split(","))
+    for line in out.splitlines():
+        row, field = [], []
+        escaped = False
+        for char in line:
+            if escaped:
+                field.append(char)
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == ":":
+                row.append("".join(field))
+                field = []
+            else:
+                field.append(char)
+        row.append("".join(field))
+        if not escaped and len(row) == count:
+            yield row
+
+
 def wifi():
-    rc, radio = run(["nmcli", "-t", "radio", "wifi"])
-    rc2, active = run(["nmcli", "-t", "-f", "ACTIVE,SSID,SIGNAL,FREQ", "dev", "wifi"])
+    _, radio = run(["env", "LC_ALL=C", "nmcli", "-t", "radio", "wifi"])
     ssid, signal, band = None, None, None
-    for line in active.splitlines():
-        parts = line.split(":")
-        if parts and parts[0] == "yes":
-            ssid, signal = parts[1], parts[2] if len(parts) > 2 else None
-            freq = parts[3] if len(parts) > 3 else ""
+    for active, name, strength, freq in nmcli_rows("ACTIVE,SSID,SIGNAL,FREQ", "dev", "wifi"):
+        if active == "yes":
+            ssid, signal = name, strength
             band = "5 GHz" if freq.startswith("5") else "2,4 GHz" if freq else None
+            break
     return {"on": radio == "enabled", "ssid": ssid, "signal": signal, "band": band}
 
 
@@ -393,16 +415,15 @@ def wifi_networks():
         return [{"ssid": "Heimnetz", "signal": 88, "secure": True, "active": True},
                 {"ssid": "Heimnetz-Gast", "signal": 61, "secure": True, "active": False},
                 {"ssid": "FRITZ!Box 7590", "signal": 34, "secure": True, "active": False}]
-    rc, out = run(["nmcli", "-t", "-f", "IN-USE,SSID,SIGNAL,SECURITY", "dev", "wifi", "list", "--rescan", "auto"], timeout=20)
     nets = {}
-    for line in out.splitlines():
-        parts = re.split(r"(?<!\\):", line)
-        if len(parts) < 4 or not parts[1]:
+    for used, ssid, signal, security in nmcli_rows("IN-USE,SSID,SIGNAL,SECURITY", "dev", "wifi", "list", "--rescan", "auto", timeout=20):
+        if not ssid:
             continue
-        ssid = parts[1].replace("\\:", ":")
-        sig = int(parts[2]) if parts[2].isdigit() else 0
-        if ssid not in nets or nets[ssid]["signal"] < sig:
-            nets[ssid] = {"ssid": ssid, "signal": sig, "secure": parts[3] not in ("", "--"), "active": parts[0] == "*"}
+        sig = int(signal) if signal.isdigit() else 0
+        active = used == "*"
+        previous = nets.get(ssid)
+        if previous is None or (active, sig) > (previous["active"], previous["signal"]):
+            nets[ssid] = {"ssid": ssid, "signal": sig, "secure": security not in ("", "--"), "active": active}
     return sorted(nets.values(), key=lambda n: (not n["active"], -n["signal"]))
 
 
