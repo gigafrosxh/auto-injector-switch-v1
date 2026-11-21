@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+X=/etc/xdg/xfce4/xfconf/xfce-perchannel-xml
+case "$1" in
+    remove|purge|abort-install|disappear)
+        for f in xsettings.xml xfwm4.xml xfce4-desktop.xml xfce4-panel.xml; do
+            dpkg-divert --package teria-shell --remove --rename --divert "$X/$f.xfce" "$X/$f" >/dev/null 2>&1 || true
+        done ;;
+esac
+exit 0

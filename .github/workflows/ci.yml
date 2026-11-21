@@ -29,7 +29,7 @@ jobs:
           shellcheck -s sh os/teria-base/usr/lib/teria/make-os-release os/teria-base/etc/update-motd.d/05-teria \
             os/teria-base/DEBIAN/postinst os/teria-base/DEBIAN/prerm os/teria-base/DEBIAN/postrm \
             os/teria-base/usr/lib/teria/reboot-hekate os/teria-shell/usr/lib/teria-shell/session \
-            os/teria-shell/usr/lib/teria-shell/desktop-mode os/teria-shell/DEBIAN/postinst
+            os/teria-shell/usr/lib/teria-shell/desktop-mode os/teria-shell/DEBIAN/postinst os/teria-shell/DEBIAN/preinst os/teria-shell/DEBIAN/postrm
           python3 -m py_compile os/teria-shell/usr/bin/teria-shell os/teria-shell/usr/lib/teria-shell/server.py os/teria-base/usr/lib/teria/pkg
           python3 -c "import json; json.load(open('os/teria-shell/usr/lib/teria-shell/catalog.json'))"
 
@@ -58,7 +58,7 @@ jobs:
             apt-get -qq update >/dev/null
             apt-get -qq install -y /dist/teria-base_*_all.deb >/dev/null
             . /etc/os-release; echo "$PRETTY_NAME"; [ "$ID" = teria ]; [ "$ID_LIKE" = debian ]
-            apt-get -qq install -y --no-install-recommends /dist/teria-shell_*_all.deb 2>&1 | grep -vE "^(Selecting|Preparing|Unpacking|Setting up|Processing)" | tail -40
+            apt-get -qq install -y --no-install-recommends /dist/teria-shell_*_all.deb >/dev/null
             cd /usr/lib/teria-shell && TERIA_SHELL_MOCK=1 python3 -c "import server,urllib.request,json; server.serve(8790); assert json.load(urllib.request.urlopen(\"http://127.0.0.1:8790/api/state\"))[\"battery\"][\"capacity\"]==78; print(\"teria-shell ok\")"
             apt-get -qq remove -y teria-shell >/dev/null
             apt-get -qq remove -y teria-base >/dev/null

@@ -1,0 +1,10 @@
+#!/bin/sh
+# Xfce liefert eigene Standard-Einstellungen; Teria lenkt sie um und bringt eigene mit.
+set -e
+X=/etc/xdg/xfce4/xfconf/xfce-perchannel-xml
+if [ "$1" = install ] || [ "$1" = upgrade ]; then
+    for f in xsettings.xml xfwm4.xml xfce4-desktop.xml xfce4-panel.xml; do
+        dpkg-divert --package teria-shell --add --rename --divert "$X/$f.xfce" "$X/$f" >/dev/null
+    done
+fi
+exit 0
