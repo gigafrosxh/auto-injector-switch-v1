@@ -82,6 +82,7 @@ def main():
     desktop = {"on": False}
 
     def on_focus(*_):
+        server.HIDDEN_SHELL["on"] = False
         if desktop["on"]:
             desktop["on"] = False
             subprocess.Popen(["/usr/lib/teria-shell/desktop-mode", "stop"], start_new_session=True)
@@ -95,6 +96,9 @@ def main():
                 kind, _ = q.get_nowait()
                 if kind == "hide":
                     desktop["on"] = True
+                    win.iconify()
+                elif kind == "app":
+                    # Gestartete App liegt sonst unter der Vollbild-Shell (#52); Home holt Teria zurueck
                     win.iconify()
                 elif kind == "quit":
                     Gtk.main_quit()
