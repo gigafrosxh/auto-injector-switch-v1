@@ -1,0 +1,2 @@
+# Teria: Root-Dateisystem auf der Linux-Partition der SD-Karte (Label SWR-TER)
+LABEL=SWR-TER  /  ext4  defaults,noatime,commit=60  0  1

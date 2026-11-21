@@ -1,0 +1,27 @@
+# Teria: geraetespezifische Pakete kommen aus dem L4T-Repo, alles andere aus Debian.
+# Die L4T-Grafiktreiber (32.3.1) laufen nur mit Xorg 1.20 (ABI 24) und dem gepatchten libx11.
+Package: *
+Pin: release o=theofficialgman-L4T
+Pin-Priority: 100
+
+Package: nvidia-l4t-* nvidia-bsp-* switch-* joycond libffi6 vk-layer-tegra-dc-present
+Pin: release o=theofficialgman-L4T
+Pin-Priority: 1001
+
+Package: xserver-xorg-core xserver-xorg-input-libinput xserver-xorg-input-joystick xserver-xorg-video-fbdev xserver-xorg-dev
+Pin: release o=theofficialgman-L4T
+Pin-Priority: 1001
+
+Package: libx11-6 libx11-data libx11-xcb1 libx11-dev libx11-xcb-dev libx11-doc
+Pin: release o=theofficialgman-L4T
+Pin-Priority: 1001
+
+# Nur L4T 32.3.x, neuere BSPs passen nicht zum Switchroot-Kernel 4.9.140
+Package: nvidia-l4t-*
+Pin: version 32.4.* 32.5.* 32.6.* 32.7.*
+Pin-Priority: -1
+
+# Debian-Xorg 21.x (ABI 25) und seine Treiber passen nicht zum L4T-Treiber
+Package: xserver-xorg-core xserver-xorg-input-* xserver-xorg-video-* libx11-6 libx11-data libx11-xcb1
+Pin: release o=Debian
+Pin-Priority: -1
