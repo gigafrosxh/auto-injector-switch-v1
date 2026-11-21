@@ -1,0 +1,31 @@
+#!/bin/bash
+# Teria Leistungsprofile (root). Aufruf: perf eco|ausgewogen|max
+# Setzt nur Obergrenzen fuer CPU- und GPU-Takt; nichts wird dauerhaft gespeichert.
+set -u
+p=${1:-}
+case "$p" in eco|ausgewogen|max) ;; *) echo "Aufruf: perf eco|ausgewogen|max"; exit 2 ;; esac
+nearest() { # naechste verfuegbare Frequenz <= Ziel
+    local want=$1; shift; local best=""
+    for f in "$@"; do [ "$f" -le "$want" ] && { [ -z "$best" ] || [ "$f" -gt "$best" ]; } && best=$f; done
+    echo "${best:-$1}"
+}
+for c in /sys/devices/system/cpu/cpu[0-9]*/cpufreq; do
+    [ -d "$c" ] || continue
+    read -r -a avail < "$c/scaling_available_frequencies" 2>/dev/null || avail=()
+    max=$(cat "$c/cpuinfo_max_freq")
+    case "$p" in eco) t=1020000 ;; ausgewogen) t=1428000 ;; max) t=$max ;; esac
+    [ "${#avail[@]}" -gt 0 ] && t=$(nearest "$t" "${avail[@]}")
+    echo "$t" > "$c/scaling_max_freq" 2>/dev/null
+    gov=schedutil; [ "$p" = max ] && gov=performance
+    grep -qw "$gov" "$c/scaling_available_governors" 2>/dev/null && echo "$gov" > "$c/scaling_governor"
+done
+for g in /sys/devices/57000000.gpu/devfreq/*; do
+    [ -d "$g" ] || continue
+    read -r -a avail < "$g/available_frequencies" 2>/dev/null || avail=()
+    [ "${#avail[@]}" -gt 0 ] || continue
+    top=${avail[-1]}
+    case "$p" in eco) t=460800000 ;; ausgewogen) t=768000000 ;; max) t=$top ;; esac
+    nearest "$t" "${avail[@]}" > "$g/max_freq" 2>/dev/null
+done
+mkdir -p /run/teria && echo "$p" > /run/teria/perf
+echo "Leistungsprofil: $p"

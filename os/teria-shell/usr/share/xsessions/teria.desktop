@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Teria
+Comment=Konsolen-Oberflaeche von Teria
+Exec=/usr/lib/teria-shell/session
+TryExec=/usr/bin/teria-shell
+Type=Application
+DesktopNames=XFCE;Teria

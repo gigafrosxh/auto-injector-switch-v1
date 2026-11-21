@@ -18,6 +18,7 @@ Aufruf: teria <befehl> [optionen]
   reboot linux           Neustart direkt wieder in dieses Linux
   reboot status          Aktuelle r2p-Einstellung anzeigen
   wachbleiben [stunden]  Standby verhindern (Standard 2 h), Strg+C beendet
+  perf [eco|ausgewogen|max]  Leistungsprofil anzeigen oder wechseln
   version                Teria-Version
 
 Teria schreibt nie auf den internen eMMC (NAND) der Switch.
@@ -128,6 +129,10 @@ case "${1:-}" in
     guard) shift; cmd_guard "$@" ;;
     reboot) shift; cmd_reboot "$@" ;;
     wachbleiben) shift; cmd_wach "$@" ;;
+    perf) shift
+        if [ -z "${1:-}" ]; then echo "Leistungsprofil: $(cat /run/teria/perf 2>/dev/null || echo ausgewogen)"
+        elif [ "$(id -u)" -eq 0 ]; then exec /usr/lib/teria/perf "$1"
+        else exec pkexec /usr/lib/teria/perf "$1"; fi ;;
     version|--version|-v) echo "Teria $(teria_version)" ;;
     ""|help|-h|--help) usage ;;
     *) echo "Unbekannter Befehl: $1"; usage; exit 2 ;;

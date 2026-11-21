@@ -1,0 +1,13 @@
+#!/bin/sh
+# Desktop-Modus innerhalb der Teria-Sitzung: Xfce-Desktop und Dock ein-/ausblenden.
+case "$1" in
+    start)
+        pgrep -u "$(id -u)" -x xfdesktop >/dev/null || xfdesktop --disable-wm-check >/dev/null 2>&1 &
+        pgrep -u "$(id -u)" -x xfce4-panel >/dev/null || xfce4-panel --disable-wm-check >/dev/null 2>&1 &
+        ;;
+    stop)
+        xfce4-panel --quit 2>/dev/null
+        xfdesktop --quit 2>/dev/null
+        ;;
+    *) echo "Aufruf: desktop-mode start|stop"; exit 2 ;;
+esac

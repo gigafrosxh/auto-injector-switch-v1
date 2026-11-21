@@ -1,0 +1,92 @@
+#!/usr/bin/python3
+"""teria-shell: startet die Teria-Konsolenoberflaeche.
+
+  teria-shell             Vollbild-Oberflaeche (WebKitGTK)
+  teria-shell --browser   nur Dienst starten und im Browser oeffnen (Entwicklung)
+  teria-shell --show      laufende Oberflaeche nach vorne holen (z. B. aus dem Desktop-Modus)
+"""
+import os
+import sys
+import urllib.request
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "lib", "teria-shell"))
+PORTFILE = os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/tmp"), "teria-shell.port")
+
+
+def show_running():
+    try:
+        port = open(PORTFILE).read().strip()
+        req = urllib.request.Request("http://127.0.0.1:%s/api/action/mode" % port, data=b'{"value":"console"}',
+                                     headers={"Content-Type": "application/json"})
+        urllib.request.urlopen(req, timeout=3)
+        os.execvp("wmctrl", ["wmctrl", "-a", "Teria"])
+    except (OSError, ValueError):
+        print("Teria-Shell laeuft nicht.", file=sys.stderr)
+        return 1
+
+
+def main():
+    if "--show" in sys.argv:
+        return show_running()
+    import server
+    srv = server.serve(0)
+    port = srv.server_address[1]
+    with open(PORTFILE, "w") as f:
+        f.write(str(port))
+    url = "http://127.0.0.1:%d/" % port
+    if "--browser" in sys.argv:
+        import webbrowser, time
+        webbrowser.open(url)
+        print(url)
+        while True:
+            time.sleep(3600)
+
+    os.environ.setdefault("WEBKIT_DISABLE_COMPOSITING_MODE", "1")   # stabiler mit dem L4T-Treiber
+    import gi
+    gi.require_version("Gtk", "3.0")
+    gi.require_version("WebKit2", "4.1")
+    from gi.repository import GLib, Gtk, WebKit2
+    import queue
+
+    win = Gtk.Window(title="Teria")
+    win.set_wmclass("teria-shell", "Teria")
+    win.fullscreen()
+    view = WebKit2.WebView()
+    s = view.get_settings()
+    s.set_enable_developer_extras(False)
+    s.set_hardware_acceleration_policy(WebKit2.HardwareAccelerationPolicy.NEVER)
+    view.connect("context-menu", lambda *a: True)
+    # Links nach aussen nicht in der Shell oeffnen
+    view.connect("decide-policy", lambda v, d, t: (d.ignore(), True)[1]
+                 if t == WebKit2.PolicyDecisionType.NEW_WINDOW_ACTION else False)
+    view.load_uri(url)
+    win.add(view)
+    win.connect("destroy", Gtk.main_quit)
+    win.show_all()
+
+    # Ereignisse des Dienstes: Fenster aus-/einblenden (Desktop-Modus)
+    q = queue.Queue()
+    with server.EVENTS_LOCK:
+        server.EVENTS.append(q)
+
+    def poll():
+        try:
+            while True:
+                kind, _ = q.get_nowait()
+                if kind == "hide":
+                    win.iconify()
+                elif kind == "quit":
+                    Gtk.main_quit()
+                elif kind == "show":
+                    win.deiconify()
+                    win.present()
+        except queue.Empty:
+            pass
+        return True
+
+    GLib.timeout_add(300, poll)
+    Gtk.main()
+
+
+if __name__ == "__main__":
+    sys.exit(main() or 0)
