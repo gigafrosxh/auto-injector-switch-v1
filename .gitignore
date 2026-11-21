@@ -7,3 +7,5 @@ autoinject.log.old
 dist/
 .claude-wa/
 .DS_Store
+__pycache__/
+*.pyc
