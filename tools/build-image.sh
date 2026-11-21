@@ -88,7 +88,7 @@ log "Switchroot-Kernel, Module, Firmware und L4T-Treiber"
 mkdir -p "$ROOT/opt/switchroot" "$ROOT/etc/apport/blacklist.d" "$ROOT/var/lib/dbus"
 touch "$ROOT/opt/switchroot/image_prep"
 # shellcheck disable=SC2046
-in_root apt-get install -y --no-install-recommends $(pkgs os/image/packages-l4t.txt)
+in_root apt-get install -y --allow-downgrades --no-install-recommends $(pkgs os/image/packages-l4t.txt)   # libx11 der L4T ist aelter als trixie
 [ -d "$ROOT/lib/modules/4.9.140-l4t" ] || { echo "Kernelmodule fehlen."; exit 1; }
 [ -f "$ROOT/opt/switchroot/bootstack/uImage" ] || { echo "Bootstack fehlt."; exit 1; }
 # NVIDIAs Ubuntu-Einrichtungsassistent (oem-config) passt nicht zu Teria
