@@ -4,6 +4,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.3.7] - 2026-11-21
+
+### Behoben
+- Die APT-Einstellungen lassen nur L4T 32.3.x zu, auch wenn das L4T-Repo neuere Versionen oder BSP-Metapakete wie `nvidia-bsp-32-7` anbietet. Ein Akzeptanztest mit synthetischen Paketlisten prüft das in der CI (#45).
+
 ## [0.3.6] - 2026-11-21
 
 ### Dokumentiert
