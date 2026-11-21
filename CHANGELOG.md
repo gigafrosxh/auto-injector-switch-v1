@@ -4,6 +4,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-11-21
+
+### Behoben
+- In der Konsolenansicht ist kein Mauszeiger mehr zu sehen, nur noch im Desktop-Modus. Touch und Controller funktionieren weiter (#53).
+
 ## [0.4.2] - 2026-11-21
 
 ### Behoben
