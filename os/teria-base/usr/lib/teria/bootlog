@@ -1,0 +1,29 @@
+#!/bin/bash
+# Teria Bootprotokolle: legt Logs dieses Starts auf der FAT32-Partition der SD ab (teria-logs/),
+# damit sie sich am PC/Mac lesen lassen. Die letzten 5 Starts bleiben erhalten.
+set -u
+# shellcheck source=os/teria-base/usr/lib/teria/lib.sh
+. "${TERIA_LIB:-/usr/lib/teria}/lib.sh"
+SD=$(sd_mount) || exit 0
+D="$SD/teria-logs/$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$D"
+{
+    echo "== $(date) | $(uname -a)"; cat /proc/cmdline; echo
+    cat /etc/os-release; echo
+    systemctl --failed --no-pager; echo
+    systemctl status lightdm display-manager nv-l4t-usb-device-mode NetworkManager teria-firstboot teria-setup --no-pager -l 2>&1; echo
+    loginctl list-seats --no-pager; loginctl seat-status seat0 --no-pager 2>&1 | head -60; echo
+    ip -br addr; nmcli -t general 2>&1; nmcli -t dev 2>&1; echo
+    ls -la /dev/fb* /dev/dri /dev/nvhost-ctrl /dev/tegra_dc_* 2>&1; echo
+    chage -l teria 2>&1
+} > "$D/uebersicht.txt" 2>&1
+journalctl -b 0 --no-pager -o short-monotonic > "$D/journal.txt" 2>&1
+journalctl -b 0 -p warning --no-pager > "$D/journal-warnungen.txt" 2>&1
+cp /var/log/Xorg.0.log "$D/" 2>/dev/null
+cp /var/log/lightdm/*.log "$D/" 2>/dev/null
+dmesg > "$D/dmesg.txt" 2>&1
+# nur die letzten 5 Starts behalten
+find "$SD/teria-logs" -mindepth 1 -maxdepth 1 -type d -print0 | sort -z | head -z -n -5 | xargs -0 -r rm -rf
+sync
+umount "$SD" 2>/dev/null
+exit 0

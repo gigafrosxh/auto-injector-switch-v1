@@ -1,0 +1,7 @@
+# Teria-Einrichtung
+# Am PC/Mac ausfuellen, speichern, SD zurueck in die Switch und Teria starten.
+# Teria uebernimmt die Werte beim naechsten Start und loescht die Passwoerter wieder aus dieser Datei.
+wlan_name=
+wlan_passwort=
+passwort=
+automatische_anmeldung=ja

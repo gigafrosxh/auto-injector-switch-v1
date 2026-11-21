@@ -1,0 +1,65 @@
+#!/bin/bash
+# Teria Einrichtung ueber die SD-Karte: liest teria-setup.txt von der FAT32-Partition.
+#   wlan_name=...  wlan_passwort=...  passwort=...  automatische_anmeldung=ja|nein
+# Passwoerter werden nach der Uebernahme aus der Datei entfernt.
+set -u
+# shellcheck source=os/teria-base/usr/lib/teria/lib.sh
+. "${TERIA_LIB:-/usr/lib/teria}/lib.sh"
+log() { echo "teria-setup: $*"; }
+USER_NAME=teria
+
+SD=$(sd_mount) || { log "keine SD-Bootpartition gefunden"; exit 0; }
+F="$SD/teria-setup.txt"
+if [ ! -f "$F" ]; then
+    cat > "$F" <<'TXT'
+# Teria-Einrichtung
+# Am PC/Mac ausfuellen, speichern, SD zurueck in die Switch und Teria starten.
+# Teria uebernimmt die Werte beim naechsten Start und loescht die Passwoerter wieder aus dieser Datei.
+wlan_name=
+wlan_passwort=
+passwort=
+automatische_anmeldung=ja
+TXT
+    log "Vorlage angelegt: teria-setup.txt"
+    umount "$SD" 2>/dev/null
+    exit 0
+fi
+
+val() { sed -n "s/^[[:space:]]*$1[[:space:]]*=[[:space:]]*//p" "$F" | tr -d '\r' | sed 's/^\xEF\xBB\xBF//' | tail -n1; }
+ssid=$(val wlan_name); psk=$(val wlan_passwort); pw=$(val passwort); auto=$(val automatische_anmeldung)
+changed=0
+
+if [ -n "$ssid" ]; then
+    safe=$(printf '%s' "$ssid" | tr -c 'A-Za-z0-9._-' '_')
+    nm=/etc/NetworkManager/system-connections/teria-$safe.nmconnection
+    {
+        echo "[connection]"; echo "id=$ssid"; echo "type=wifi"; echo "autoconnect=true"
+        echo; echo "[wifi]"; echo "mode=infrastructure"; echo "ssid=$ssid"
+        if [ -n "$psk" ]; then echo; echo "[wifi-security]"; echo "key-mgmt=wpa-psk"; echo "psk=$psk"; fi
+        echo; echo "[ipv4]"; echo "method=auto"; echo; echo "[ipv6]"; echo "method=auto"
+    } > "$nm"
+    chmod 600 "$nm"
+    log "WLAN \"$ssid\" eingerichtet"
+    changed=1
+fi
+if [ -n "$pw" ]; then
+    printf '%s:%s\n' "$USER_NAME" "$pw" | chpasswd && chage -d "$(date +%Y-%m-%d)" "$USER_NAME" && log "Passwort fuer $USER_NAME gesetzt"
+    changed=1
+fi
+case "$auto" in
+    ja|Ja|JA|yes|1)
+        mkdir -p /etc/lightdm/lightdm.conf.d
+        printf '[Seat:*]\nautologin-user=%s\nautologin-user-timeout=0\nautologin-session=teria\n' "$USER_NAME" > /etc/lightdm/lightdm.conf.d/70-teria-autologin.conf
+        groupadd -rf autologin; usermod -aG autologin "$USER_NAME" ;;
+    nein|Nein|NEIN|no|0)
+        rm -f /etc/lightdm/lightdm.conf.d/70-teria-autologin.conf ;;
+esac
+
+if [ "$changed" = 1 ]; then
+    # Passwoerter aus der Datei entfernen, Rest stehen lassen
+    sed -i -e 's/^\([[:space:]]*wlan_passwort[[:space:]]*=\).*/\1/' -e 's/^\([[:space:]]*passwort[[:space:]]*=\).*/\1/' "$F"
+    echo "# Uebernommen am $(date '+%d.%m.%Y %H:%M'). Passwoerter wurden aus dieser Datei entfernt." >> "$F"
+fi
+sync
+umount "$SD" 2>/dev/null
+exit 0

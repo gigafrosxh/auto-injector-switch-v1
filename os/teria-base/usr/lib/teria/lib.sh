@@ -57,3 +57,25 @@ need_root() {
         exec sudo -- "$0" "$@"
     fi
 }
+
+# FAT32-Bootpartition auf der SD-Karte (Hekate, switchroot/), z. B. mmcblk0p1.
+sd_boot_part() {
+    local d p
+    for d in $(mmc_disks_of_type SD); do
+        for p in /sys/block/"$d"/"$d"p*; do
+            [ -e "$p" ] || continue
+            [ "$(lsblk -no FSTYPE "/dev/${p##*/}" 2>/dev/null)" = vfat ] && { echo "${p##*/}"; return 0; }
+        done
+    done
+    return 1
+}
+
+# Haengt die FAT32-Partition der SD unter /run/teria/sd ein (root). Gibt den Pfad aus.
+sd_mount() {
+    local part mp=/run/teria/sd
+    mountpoint -q "$mp" && { echo "$mp"; return 0; }
+    part=$(sd_boot_part) || return 1
+    mkdir -p "$mp"
+    mount -t vfat -o rw,nosuid,nodev,noexec,umask=077 "/dev/$part" "$mp" || return 1
+    echo "$mp"
+}
