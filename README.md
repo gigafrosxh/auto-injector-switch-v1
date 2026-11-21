@@ -1,54 +1,48 @@
 # Teria
 
 **Teria** ist ein eigenes, Linux-basiertes Betriebssystem für die **Nintendo Switch V1** (ungepatcht, Tegra X1).
-Es baut auf Switchroot L4T Ubuntu Noble auf und bringt den **Auto-Injector** mit, der Hekate automatisch
-per RCM startet, sobald die Switch am PC hängt.
+Ab 0.2.0 ist es ein eigenständiges System auf Basis von **Debian trixie (arm64)** und ersetzt Switchroot Ubuntu.
+Vom Switchroot-Projekt kommen nur Kernel, Treiber und Firmware. Dazu gehört der **Auto-Injector**, der Hekate
+automatisch per RCM startet, sobald die Switch am PC hängt.
 
-*English: Teria is a Linux-based OS layer for the Nintendo Switch V1 on top of Switchroot L4T Ubuntu Noble,
-bundled with a SHA256-pinned auto-injector for Hekate. It never writes to the internal eMMC.*
+*English: Teria is a standalone Debian-trixie-based OS for the Nintendo Switch V1 using the Switchroot L4T kernel
+and drivers, bundled with a SHA256-pinned auto-injector for Hekate. It never writes to the internal eMMC.*
 
 | | |
 |---|---|
 | Version | siehe [VERSION](VERSION) und [Releases](https://github.com/gigafrosxh/auto-injector-switch-v1/releases) |
-| Basis | Switchroot L4T Ubuntu Noble 24.04, Kernel 4.9.140-l4t, L4T R32.3.1 |
+| Basis | Debian 13 trixie arm64, Kernel 4.9.140-l4t (Switchroot), L4T R32.3.1, Xfce |
 | Planung | [Meilensteine](https://github.com/gigafrosxh/auto-injector-switch-v1/milestones), [Issues](https://github.com/gigafrosxh/auto-injector-switch-v1/issues) |
-| Doku | [Analyse der Switch](docs/SWITCH-ANALYSE.md), [Architektur](docs/ARCHITEKTUR.md), [Sicherheit](docs/SICHERHEIT.md) |
+| Doku | [Installation](docs/INSTALLATION.md), [Analyse der Switch](docs/SWITCH-ANALYSE.md), [Architektur](docs/ARCHITEKTUR.md), [Sicherheit](docs/SICHERHEIT.md) |
 
 ## Was Teria mitbringt
 
+- eigenständiges System: Debian trixie, Xfce-Desktop, NetworkManager, Bluetooth, SSH, deutsche Voreinstellungen
+- eigener Hekate-Eintrag „Teria“ mit Icon und Bootlogo, eigene Linux-Partition `SWR-TER`
+- Erststart: Partition wird automatisch vergrößert, SSH-Schlüssel werden erzeugt
 - `teria info`: Kernel, L4T, BSP, Akku (Zyklen, Gesundheit, Joy-Cons), Temperaturen, Speicher, eMMC-Schutz
 - `teria akku`, `teria temp`
 - `teria reboot hekate` / `teria reboot linux`: Neustart über Reboot 2 Payload, ohne RCM und Jig
-- `teria wachbleiben [stunden]`: verhindert den automatischen Standby (z. B. für lange SSH-Sitzungen)
+- `teria wachbleiben [stunden]`: verhindert den automatischen Standby
 - `teria guard status`: der interne eMMC wird beim Booten und beim Auftauchen schreibgeschützt und ausgeblendet
-- eigener Hekate-Eintrag „Teria“ mit Icon und Bootlogo (der Switchroot-Eintrag bleibt unverändert)
-- Auto-Injector für Windows (macOS/Linux folgt in 0.2.0)
+- Auto-Injector für Windows (macOS/Linux folgt in 0.4.0)
 
 ## Installation
 
-Voraussetzung: Switchroot L4T Ubuntu Noble läuft auf der Switch.
+Kurz: `teria-<version>-sd.zip` aus dem Release auf die FAT32-Partition der SD-Karte entpacken, in Hekate
+**Nyx → Tools → Partition SD → Flash Linux**, dann **More configs → Teria**. Das überschreibt Ubuntu.
+Vorher sichern. Ohne Risiko testen geht vom USB-Stick am Dock. Alles Schritt für Schritt: [docs/INSTALLATION.md](docs/INSTALLATION.md).
 
-```bash
-# auf der Switch
-sudo apt install ./teria-base_<version>_all.deb
-teria info
-```
+Anmeldung beim ersten Start: `teria` / `teria`, das Passwort muss sofort geändert werden.
 
-oder vom PC/Mac per SSH (fragt vor jedem Schritt):
-
-```bash
-tools/deploy.sh --host daniel@<ip-der-switch> --boot
-```
-
-Den Booteintrag kann man auch von Hand installieren: `teria-boot-<version>.zip` auf die FAT32-Partition der
-SD-Karte entpacken. Entfernen: `sudo apt remove teria-base`, dann `bootloader/ini/teria.ini` und
-`switchroot/teria/` löschen.
+Nur das Werkzeug `teria` in einem bestehenden Switchroot Ubuntu: `sudo apt install ./teria-base_<version>_all.deb`
+oder vom PC/Mac `tools/deploy.sh --host daniel@<ip-der-switch>`.
 
 ## Selbst bauen
 
 ```bash
 tools/build-deb.sh            # dist/teria-base_<version>_all.deb (braucht dpkg-deb)
-tools/build-boot-zip.sh       # dist/teria-boot-<version>.zip
+sudo tools/build-image.sh     # dist/teria-<version>-sd.zip (nur Linux arm64, braucht mmdebstrap)
 tools/build-injector-zip.sh   # dist/teria-injector-windows-<version>.zip
 ```
 

@@ -23,11 +23,13 @@ MIRROR=http://deb.debian.org/debian
 L4T_REPO=https://theofficialgman.github.io/l4t-debs
 L4T_KEY_FPR=1B920C89A4283780164AE26773A65EDFE6C919A5
 LABEL=SWR-TER
+KEYRING_DEB=http://deb.debian.org/debian/pool/main/d/debian-archive-keyring/debian-archive-keyring_2025.1_all.deb
+KEYRING_SHA=9ea7778e443144ca490668737a8ab22dd3e748bb99e805e22ec055abeb3c7fac
 PART_SIZE=4290772992   # Teilgroesse, die Hekate fuer switchroot/install/l4t.NN erwartet
 
 [ "$(id -u)" -eq 0 ] || { echo "Bitte mit sudo ausfuehren."; exit 1; }
 [ "$(dpkg --print-architecture)" = arm64 ] || { echo "Nur auf arm64 (nativ) unterstuetzt."; exit 1; }
-for t in mmdebstrap mke2fs e2fsck resize2fs zip gpg; do command -v $t >/dev/null || { echo "Fehlt: $t"; exit 1; }; done
+for t in mmdebstrap mke2fs e2fsck zip gpg curl sha256sum; do command -v $t >/dev/null || { echo "Fehlt: $t"; exit 1; }; done
 
 log() { printf '\n==> %s\n' "$*"; }
 pkgs() { grep -v -E '^\s*(#|$)' "$1" | tr '\n' ' '; }
@@ -48,7 +50,13 @@ DEBVER=${VERSION/-/\~}
 "$REPO/tools/build-deb.sh" "$VERSION" >/dev/null
 TERIA_DEB=$REPO/dist/teria-base_${DEBVER}_all.deb
 
-mmdebstrap --arch=arm64 --variant=important \
+# Debian-Archivschluessel fuer trixie (der des Build-Hosts ist evtl. zu alt), Hash gepinnt
+curl -fsSL -o "$WORK/keyring.deb" "$KEYRING_DEB"
+echo "$KEYRING_SHA  $WORK/keyring.deb" | sha256sum -c --quiet
+dpkg-deb -x "$WORK/keyring.deb" "$WORK/keyring"
+KEYRING=$WORK/keyring/usr/share/keyrings/debian-archive-keyring.gpg
+
+mmdebstrap --arch=arm64 --variant=important --keyring="$KEYRING" \
     --components="main contrib non-free non-free-firmware" \
     --include="$(pkgs os/image/packages-debian.txt | tr ' ' ',' | sed 's/,$//')" \
     --aptopt='APT::Install-Recommends "false"' \

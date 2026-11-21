@@ -37,7 +37,6 @@ jobs:
       - name: Pakete bauen
         run: |
           tools/build-deb.sh "${{ steps.v.outputs.version }}"
-          tools/build-boot-zip.sh "${{ steps.v.outputs.version }}"
           tools/build-injector-zip.sh "${{ steps.v.outputs.version }}"
           ls -la dist
 
@@ -50,6 +49,12 @@ jobs:
             teria version; teria guard status
             apt-get -qq remove -y teria-base >/dev/null
             . /etc/os-release; echo "nach Entfernen: $PRETTY_NAME"; [ "$NAME" = Ubuntu ]'
+          docker run --rm -v "$PWD/dist:/dist" debian:trixie bash -euc '
+            apt-get -qq update >/dev/null
+            apt-get -qq install -y /dist/teria-base_*_all.deb >/dev/null
+            . /etc/os-release; echo "$PRETTY_NAME"; [ "$ID" = teria ]; [ "$ID_LIKE" = debian ]
+            apt-get -qq remove -y teria-base >/dev/null
+            . /etc/os-release; [ "$ID" = debian ]; echo "nach Entfernen: $PRETTY_NAME"'
 
       - uses: actions/upload-artifact@v4
         with:
