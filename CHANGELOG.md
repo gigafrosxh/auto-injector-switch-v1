@@ -4,6 +4,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.3.4] - 2026-11-21
+
+### Behoben
+- Der Desktop-Modus installiert die Energieanzeige für die Xfce-Leiste. Damit kann das Panel `power-manager-plugin` beim Start laden (#42).
+
 ## [0.3.3] - 2026-11-21
 
 ### Behoben

@@ -67,8 +67,9 @@ jobs:
             apt-get -qq install -y --no-install-recommends /dist/teria-shell_*_all.deb >/dev/null
             cd /usr/lib/teria-shell && TERIA_SHELL_MOCK=1 python3 -c "import server,urllib.request,json; server.serve(8790); assert json.load(urllib.request.urlopen(\"http://127.0.0.1:8790/api/state\"))[\"battery\"][\"capacity\"]==78; print(\"teria-shell ok\")"
             command -v gtk-launch
-            apt-get -qq install -y --no-install-recommends xvfb xauth >/dev/null
+            apt-get -qq install -y --no-install-recommends xvfb xauth dbus-daemon >/dev/null
             xvfb-run -a python3 /tests/check_app_launch.py
+            HOME="$(mktemp -d)" xvfb-run -a dbus-run-session -- bash /tests/check_power_plugin.sh
             apt-get -qq remove -y teria-shell >/dev/null
             apt-get -qq remove -y teria-base >/dev/null
             . /etc/os-release; [ "$ID" = debian ]; echo "nach Entfernen: $PRETTY_NAME"'
