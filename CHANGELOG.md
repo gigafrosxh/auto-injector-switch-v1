@@ -4,6 +4,9 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+### Behoben
+- Das Image enthält die Netzwerkwerkzeuge, die der L4T-Dienst für die USB-Brücke und die Adressvergabe an den angeschlossenen Rechner aufruft (#33).
+
 ## [0.3.4] - 2026-11-21
 
 ### Behoben
