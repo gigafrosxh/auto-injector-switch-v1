@@ -35,7 +35,16 @@ EVENTS_LOCK = threading.Lock()
 JOBS = {}            # Installationsauftraege
 
 
+HIDDEN_SHELL = {"on": False}   # Shell verdeckt (App oder Desktop vorn): Controller nicht an die Oberflaeche
+
+
 def emit(kind, data):
+    if kind in ("app", "hide"):
+        HIDDEN_SHELL["on"] = True
+    elif kind == "show":
+        HIDDEN_SHELL["on"] = False
+    elif kind == "pad" and HIDDEN_SHELL["on"]:
+        return
     with EVENTS_LOCK:
         for q in list(EVENTS):
             try:
@@ -274,6 +283,33 @@ def remember(aid):
         json.dump(r[:30], f)
 
 
+def _windows():
+    """Normale Fenster (ohne Leisten auf allen Arbeitsflaechen) als Liste von IDs."""
+    try:
+        out = subprocess.run(["wmctrl", "-l"], capture_output=True, text=True, timeout=3).stdout
+    except (OSError, subprocess.SubprocessError):
+        return []
+    return [f[0] for f in (line.split(None, 3) for line in out.splitlines()) if len(f) > 1 and f[1] != "-1"]
+
+
+def _bring_to_front(before):
+    """Neues App-Fenster maximiert nach vorn holen; die Vollbild-Shell geht dafuer zur Seite (#52)."""
+    def wm(*args):
+        subprocess.run(["wmctrl", *args], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=3)
+    for _ in range(40):
+        time.sleep(0.5)
+        new = [w for w in _windows() if w not in before]
+        if new:
+            emit("app", {})
+            time.sleep(0.3)
+            try:
+                wm("-i", "-r", new[-1], "-b", "add,maximized_vert,maximized_horz")
+                wm("-i", "-a", new[-1])
+            except (OSError, subprocess.SubprocessError):
+                pass
+            return
+
+
 def launch(aid):
     if MOCK:
         return True
@@ -281,12 +317,14 @@ def launch(aid):
         return False
     if not any(os.path.exists(os.path.join(d, aid)) for d in DESKTOP_DIRS):
         return False
+    before = set(_windows())
     try:
         subprocess.run(["gtk-launch", aid[:-8]], start_new_session=True, check=True, timeout=10,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except (OSError, subprocess.SubprocessError):
         return False
     remember(aid)
+    threading.Thread(target=_bring_to_front, args=(before,), daemon=True).start()
     return True
 
 
@@ -480,6 +518,7 @@ def read_pad(dev, keymap, e, watched, path):
             if ev.type == e.EV_KEY and ev.value == 1 and ev.code in keymap:
                 key = keymap[ev.code]
                 if key == "home":
+                    HIDDEN_SHELL["on"] = False
                     subprocess.Popen(["wmctrl", "-a", "Teria"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 emit("pad", {"key": key})
             elif ev.type == e.EV_ABS and ev.code in (e.ABS_HAT0X, e.ABS_HAT0Y) and ev.value != 0:

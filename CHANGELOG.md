@@ -4,6 +4,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-11-21
+
+### Behoben
+- Apps aus der Konsolenansicht öffnen sich maximiert im Vordergrund statt unsichtbar hinter der Teria-Oberfläche. Die Home-Taste holt Teria zurück; solange eine App vorn ist, steuert der Controller nicht mehr die verdeckte Oberfläche (#52).
+
 ## [0.4.1] - 2026-11-21
 
 ### Behoben
