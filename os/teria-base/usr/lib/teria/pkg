@@ -1,0 +1,25 @@
+#!/usr/bin/python3 -I
+"""Installiert Pakete aus dem Teria-Store (root). Nur Pakete aus dem Katalog sind erlaubt.
+Aufruf: pkg install <paket>. Gibt den Fortschritt als 'NN%' Zeilen aus."""
+import json, os, re, subprocess, sys
+CAT = "/usr/lib/teria-shell/catalog.json"
+if len(sys.argv) != 3 or sys.argv[1] != "install":
+    sys.exit("Aufruf: pkg install <paket>")
+pkg = sys.argv[2]
+try:
+    allowed = {i["pkg"] for i in json.load(open(CAT))}
+except (OSError, ValueError):
+    allowed = set()
+if pkg not in allowed or not re.fullmatch(r"[a-z0-9][a-z0-9+.\-]*", pkg):
+    sys.exit("Paket nicht im Teria-Store: %s" % pkg)
+env = dict(os.environ, DEBIAN_FRONTEND="noninteractive")
+subprocess.run(["apt-get", "update", "-qq"], env=env)
+p = subprocess.Popen(["apt-get", "install", "-y", "-o", "APT::Status-Fd=1", "-o", "Dpkg::Use-Pty=0", pkg],
+                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=env)
+for line in p.stdout:
+    m = re.match(r"(dl|pm)status:[^:]*:([\d.]+):", line)
+    if m:
+        pct = float(m.group(2))
+        pct = pct * 0.5 if m.group(1) == "dl" else 50 + pct * 0.5
+        print("%d%%" % pct, flush=True)
+sys.exit(p.wait())

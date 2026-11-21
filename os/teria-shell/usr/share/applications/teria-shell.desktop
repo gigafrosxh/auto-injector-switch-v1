@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Teria
+Comment=Zur Konsolen-Oberflaeche wechseln
+Exec=teria-shell --show
+Icon=teria
+Terminal=false
+Type=Application
+Categories=System;

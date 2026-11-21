@@ -1,0 +1,17 @@
+#!/bin/sh
+# Teria-Sitzung: Fenstermanager, Einstellungen, polkit-Agent, dann die Konsolenoberflaeche.
+export XDG_CURRENT_DESKTOP=XFCE:Teria
+export GTK_THEME=Arc-Dark
+xfsettingsd --daemon 2>/dev/null
+xfwm4 --compositor=off --daemon 2>/dev/null || xfwm4 --compositor=off &
+for a in /usr/libexec/polkit-mate-authentication-agent-1 /usr/lib/mate-polkit/polkit-mate-authentication-agent-1; do
+    [ -x "$a" ] && { "$a" & break; }
+done
+command -v unclutter >/dev/null && unclutter --timeout 3 --jitter 10 &
+command -v nm-applet >/dev/null && nm-applet --indicator >/dev/null 2>&1 &
+# Bei Absturz der Oberflaeche nicht im leeren Bildschirm landen
+while :; do
+    teria-shell
+    [ $? -eq 0 ] && break
+    sleep 1
+done

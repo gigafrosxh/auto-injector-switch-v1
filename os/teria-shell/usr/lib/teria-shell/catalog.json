@@ -1,0 +1,17 @@
+[
+ {"pkg":"supertuxkart","name":"SuperTuxKart","kind":"spiele","art":"t-sterne","size":"680 MB","desc":"Kart-Rennen mit bis zu vier Spielern am Bildschirm. Läuft im Dock flüssig mit Joy-Cons.","controls":"Joy-Con, Pro Controller"},
+ {"pkg":"supertux","name":"SuperTux","kind":"spiele","art":"t-berg","size":"110 MB","desc":"Klassisches Jump'n'Run mit über 100 Levels.","controls":"Joy-Con, Tastatur"},
+ {"pkg":"luanti","name":"Luanti","kind":"spiele","art":"t-pixel","size":"90 MB","desc":"Offene Block-Welt zum Bauen und Erkunden, mit vielen Spielmodi.","controls":"Tastatur, Maus, Joy-Con"},
+ {"pkg":"neverball","name":"Neverball","kind":"spiele","art":"t-orbit","size":"60 MB","desc":"Neige das Spielfeld und roll die Kugel ins Ziel.","controls":"Joy-Con, Touch"},
+ {"pkg":"frozen-bubble","name":"Frozen Bubble","kind":"spiele","art":"t-raster","size":"25 MB","desc":"Bunte Blasen zielen und platzen lassen.","controls":"Joy-Con, Tastatur"},
+ {"pkg":"openttd","name":"OpenTTD","kind":"spiele","art":"t-wellen","size":"35 MB","desc":"Transport-Imperium mit Zügen, Schiffen und Flugzeugen aufbauen.","controls":"Maus, Touch"},
+ {"pkg":"retroarch","name":"RetroArch","kind":"spiele","art":"t-film","size":"45 MB","desc":"Oberfläche für Emulatoren und eigene Homebrew-Spiele.","controls":"Joy-Con, Pro Controller"},
+ {"pkg":"scummvm","name":"ScummVM","kind":"spiele","art":"t-berg","size":"40 MB","desc":"Klassische Adventures, die du selbst besitzt, wieder spielen.","controls":"Touch, Maus"},
+ {"pkg":"geany","name":"Geany","kind":"entwicklung","art":"t-code","size":"12 MB","desc":"Schneller, leichter Code-Editor für viele Sprachen.","controls":"Tastatur, Maus"},
+ {"pkg":"thonny","name":"Thonny","kind":"entwicklung","art":"t-code","size":"18 MB","desc":"Python lernen und ausprobieren, mit Schritt-für-Schritt-Debugger.","controls":"Tastatur, Maus"},
+ {"pkg":"vlc","name":"VLC","kind":"medien","art":"t-film","size":"70 MB","desc":"Spielt fast jedes Video- und Audioformat.","controls":"Touch, Joy-Con"},
+ {"pkg":"kodi","name":"Kodi","kind":"medien","art":"t-wellen","size":"150 MB","desc":"Mediacenter für Filme, Serien und Musik am Fernseher.","controls":"Joy-Con, Fernbedienung"},
+ {"pkg":"gimp","name":"GIMP","kind":"apps","art":"t-raster","size":"210 MB","desc":"Bildbearbeitung mit Ebenen, Masken und Filtern.","controls":"Maus, Touch"},
+ {"pkg":"libreoffice-writer","name":"LibreOffice Writer","kind":"apps","art":"t-code","size":"260 MB","desc":"Textverarbeitung, kompatibel mit Word-Dokumenten.","controls":"Tastatur, Maus"},
+ {"pkg":"chromium","name":"Chromium","kind":"apps","art":"t-orbit","size":"280 MB","desc":"Zweiter Browser, neben Firefox.","controls":"Touch, Tastatur"}
+]

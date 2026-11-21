@@ -47,8 +47,7 @@ trap cleanup EXIT
 log "Teria $VERSION: Debian $SUITE arm64 nach $ROOT"
 mkdir -p "$WORK" "$OUT"
 DEBVER=${VERSION/-/\~}
-"$REPO/tools/build-deb.sh" "$VERSION" >/dev/null
-TERIA_DEB=$REPO/dist/teria-base_${DEBVER}_all.deb
+"$REPO/tools/build-deb.sh" "$VERSION" teria-base teria-shell >/dev/null
 
 # Debian-Archivschluessel fuer trixie (der des Build-Hosts ist evtl. zu alt), Hash gepinnt
 curl -fsSL -o "$WORK/keyring.deb" "$KEYRING_DEB"
@@ -98,10 +97,10 @@ rm -f "$ROOT/opt/nvidia/l4t-packages/.nv-l4t-disable-boot-fw-update-in-preinstal
 # NVIDIAs Ubuntu-Einrichtungsassistent (oem-config) passt nicht zu Teria
 in_root systemctl mask nv-oem-config.target nv-oem-config-debconf@.service nv-oem-config-gui.service >/dev/null 2>&1 || true
 
-log "teria-base"
-cp "$TERIA_DEB" "$ROOT/tmp/teria-base.deb"
-in_root apt-get install -y /tmp/teria-base.deb
-rm -f "$ROOT/tmp/teria-base.deb"
+log "teria-base und teria-shell"
+cp "$REPO/dist/teria-base_${DEBVER}_all.deb" "$REPO/dist/teria-shell_${DEBVER}_all.deb" "$ROOT/tmp/"
+in_root sh -c 'apt-get install -y --no-install-recommends /tmp/teria-base_*_all.deb /tmp/teria-shell_*_all.deb'
+rm -f "$ROOT"/tmp/teria-*.deb
 
 log "Systemeinstellungen"
 cp -a os/image/overlay/. "$ROOT/"

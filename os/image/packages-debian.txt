@@ -39,7 +39,7 @@ libwayland-client0
 libwayland-server0
 xserver-common
 xinit
-# Desktop (Grundausstattung, Design folgt in 0.3.0)
+# Oberflaeche (teria-shell) und Desktop-Modus
 lightdm
 lightdm-gtk-greeter
 xfce4-session
@@ -60,3 +60,14 @@ firefox-esr
 fonts-noto-core
 adwaita-icon-theme
 mate-polkit
+python3-gi
+gir1.2-gtk-3.0
+gir1.2-webkit2-4.1
+python3-evdev
+wmctrl
+brightnessctl
+pkexec
+unclutter-xfixes
+arc-theme
+papirus-icon-theme
+fontconfig
