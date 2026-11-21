@@ -11,13 +11,15 @@ and drivers, bundled with a SHA256-pinned auto-injector for Hekate. It never wri
 | | |
 |---|---|
 | Version | siehe [VERSION](VERSION) und [Releases](https://github.com/gigafrosxh/auto-injector-switch-v1/releases) |
-| Basis | Debian 13 trixie arm64, Kernel 4.9.140-l4t (Switchroot), L4T R32.3.1, Xfce |
+| Basis | Debian 13 trixie arm64, Kernel 4.9.140-l4t (Switchroot), L4T R32.3.1, eigene Oberfläche (teria-shell) |
 | Planung | [Meilensteine](https://github.com/gigafrosxh/auto-injector-switch-v1/milestones), [Issues](https://github.com/gigafrosxh/auto-injector-switch-v1/issues) |
 | Doku | [Installation](docs/INSTALLATION.md), [Analyse der Switch](docs/SWITCH-ANALYSE.md), [Architektur](docs/ARCHITEKTUR.md), [Sicherheit](docs/SICHERHEIT.md) |
 
 ## Was Teria mitbringt
 
-- eigenständiges System: Debian trixie, Xfce-Desktop, NetworkManager, Bluetooth, SSH, deutsche Voreinstellungen
+- eigene Konsolen-Oberfläche: Startbildschirm, Schnellmenü, Bibliothek, Store, Einstellungen, bedienbar mit Joy-Cons, Touch und Tastatur ([Bilder](docs/screenshots/0.3.0))
+- Desktop-Modus mit Dock für die Arbeit im Dock
+- eigenständiges System: Debian trixie, NetworkManager, Bluetooth, SSH, deutsche Voreinstellungen
 - eigener Hekate-Eintrag „Teria“ mit Icon und Bootlogo, eigene Linux-Partition `SWR-TER`
 - Erststart: Partition wird automatisch vergrößert, SSH-Schlüssel werden erzeugt
 - `teria info`: Kernel, L4T, BSP, Akku (Zyklen, Gesundheit, Joy-Cons), Temperaturen, Speicher, eMMC-Schutz
@@ -41,7 +43,8 @@ oder vom PC/Mac `tools/deploy.sh --host daniel@<ip-der-switch>`.
 ## Selbst bauen
 
 ```bash
-tools/build-deb.sh            # dist/teria-base_<version>_all.deb (braucht dpkg-deb)
+tools/build-deb.sh            # dist/teria-base_… und teria-shell_….deb (braucht dpkg-deb)
+TERIA_SHELL_MOCK=1 os/teria-shell/usr/bin/teria-shell --browser   # Oberfläche mit Beispieldaten im Browser
 sudo tools/build-image.sh     # dist/teria-<version>-sd.zip (nur Linux arm64, braucht mmdebstrap)
 tools/build-injector-zip.sh   # dist/teria-injector-windows-<version>.zip
 ```

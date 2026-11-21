@@ -14,7 +14,11 @@
                                        ├─ Debian trixie arm64            Basis, Xfce, NetworkManager, SSH
                                        ├─ L4T-Repo (nur Geräteteile)     switch-bsp, nvidia-l4t-* 32.3.1,
                                        │                                 Xorg 1.20 + libx11 (L4T), joycond
-                                       └─ teria-base                     teria, eMMC-Schutz, Erststart, os-release
+                                       ├─ teria-base                     teria, eMMC-Schutz, Erststart, os-release,
+                                       │                                 Root-Helfer (perf, reboot-hekate, pkg) mit polkit
+                                       └─ teria-shell                    Konsolen-Oberfläche: Python-Dienst auf 127.0.0.1
+                                                                         + WebKitGTK-Vollbild, Joy-Cons über evdev,
+                                                                         Desktop-Modus (xfwm4, xfce4-panel als Dock)
 ```
 
 Build: `tools/build-image.sh` (mmdebstrap, nativ auf arm64 in der CI) → ext4-Image `SWR-TER` →
@@ -25,6 +29,7 @@ Das Paket `teria-base` läuft auch weiterhin als Schicht in Switchroot Ubuntu (d
 | Pfad | Inhalt |
 |---|---|
 | `os/teria-base/` | Paketbaum, wird von `tools/build-deb.sh` gebaut |
+| `os/teria-shell/` | Oberfläche (Dienst `server.py`, `www/`, Sitzung, Desktop-Design) |
 | `boot/teria/` | Hekate-Eintrag, Icon, Bootlogo |
 | `injector/windows/` | Auto-Injector für Windows (PowerShell + TegraRcmSmash) |
 | `tools/` | Bau- und Installationsskripte |

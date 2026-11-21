@@ -4,6 +4,19 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-21
+
+### Neu
+- Teria-Oberfläche `teria-shell` nach den Mockups (#30): Startbildschirm mit Kachelreihe und Vorschau, Schnellmenü, Bibliothek, Store mit geprüften Debian-Paketen, App-Seite mit Installation, Einstellungen (Netzwerk, Bluetooth, Anzeige & Ton, Energie & Leistung, Sicherheit, Über Teria)
+- Bedienung mit Joy-Cons und Pro Controller über evdev, Tastatur und Touch (#28)
+- Desktop-Modus mit Leiste oben und Dock links, Arc-Dark, Papirus-Icons, Ubuntu-Schrift, Anmeldung im Teria-Design (#26)
+- `teria perf eco|ausgewogen|max`: Leistungsprofile über CPU- und GPU-Taktgrenzen
+- Neustart in Hekate und Paketinstallation über polkit-Helfer, Store installiert nur Pakete aus dem Katalog
+
+### Geändert
+- Teria startet standardmäßig in die Teria-Sitzung; die Xfce-Sitzung bleibt bei der Anmeldung wählbar
+- Der Einrichtungsassistent (#27) ist nach 0.4.0 verschoben
+
 ## [0.2.0] - 2026-11-21
 
 ### Neu
