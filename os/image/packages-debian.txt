@@ -59,4 +59,4 @@ onboard
 firefox-esr
 fonts-noto-core
 adwaita-icon-theme
-policykit-1-gnome
+mate-polkit
