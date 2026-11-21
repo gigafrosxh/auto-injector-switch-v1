@@ -1,0 +1,21 @@
+#!/bin/sh
+set -e
+case "$1" in
+    configure|triggered)
+        if [ "$1" = configure ]; then
+            dpkg-divert --package teria-base --divert /usr/lib/os-release.ubuntu --rename --add /usr/lib/os-release >/dev/null
+        fi
+        /usr/lib/teria/make-os-release
+        if [ "$1" = configure ]; then
+            if [ -d /run/systemd/system ]; then
+                systemctl daemon-reload || true
+                systemctl enable teria-emmc-guard.service >/dev/null 2>&1 || true
+                systemctl start teria-emmc-guard.service || true
+                udevadm control --reload-rules || true
+            else
+                systemctl enable teria-emmc-guard.service >/dev/null 2>&1 || true
+            fi
+        fi
+        ;;
+esac
+exit 0

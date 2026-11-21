@@ -1,0 +1,134 @@
+#!/bin/bash
+# teria - Werkzeug von Teria, dem Switch-Betriebssystem auf Basis von Switchroot L4T Ubuntu.
+set -u
+# shellcheck source=os/teria-base/usr/lib/teria/lib.sh
+. "${TERIA_LIB:-/usr/lib/teria}/lib.sh"
+
+usage() {
+    cat <<EOF
+Teria $(teria_version)
+
+Aufruf: teria <befehl> [optionen]
+
+  info [--kurz]          Systemueberblick (OS, Kernel, L4T, Akku, Temperaturen, Speicher)
+  akku                   Akkustand, Ladezustand, Ladezyklen, Gesundheit
+  temp                   Alle Temperatursensoren
+  guard [status|apply]   eMMC-Schreibschutz pruefen oder (als root) setzen
+  reboot hekate          Neustart ins Hekate-Menue (Reboot 2 Payload, ohne RCM/Jig)
+  reboot linux           Neustart direkt wieder in dieses Linux
+  reboot status          Aktuelle r2p-Einstellung anzeigen
+  wachbleiben [stunden]  Standby verhindern (Standard 2 h), Strg+C beendet
+  version                Teria-Version
+
+Teria schreibt nie auf den internen eMMC (NAND) der Switch.
+EOF
+}
+
+temp_c() { local v; v=$(rd "$1"); [ "$v" = "?" ] && { echo "?"; return; }; awk -v t="$v" 'BEGIN{printf "%.1f", (t>1000?t/1000:t/10)}'; }
+
+cmd_akku() {
+    local b=/sys/class/power_supply/battery
+    [ -d "$b" ] || { echo "Kein Akku gefunden."; return 1; }
+    local full design
+    full=$(rd $b/charge_full); design=$(rd $b/charge_full_design)
+    printf 'Akku:        %s %% (%s)\n' "$(rd $b/capacity)" "$(rd $b/status)"
+    printf 'Gesundheit:  %s' "$(rd $b/health)"
+    [ "$full" != "?" ] && [ "$design" != "?" ] && printf ', %s %% der Nennkapazitaet' "$(awk -v a="$full" -v b="$design" 'BEGIN{printf "%d", a*100/b}')"
+    echo
+    printf 'Ladezyklen:  %s\n' "$(rd $b/cycle_count)"
+    printf 'Temperatur:  %s C\n' "$(temp_c $b/temp)"
+    printf 'Leistung:    %s W\n' "$(awk -v p="$(rd $b/power_now)" 'BEGIN{ if (p=="?") print "?"; else printf "%.1f", p/1000000 }')"
+    local lim; lim=$(rd /sys/class/power_supply/usb/charge_control_limit)
+    [ "$lim" != "?" ] && printf 'Ladegrenze:  %s %%\n' "$lim"
+    local c
+    for c in /sys/class/power_supply/nintendo_switch_controller_battery_*; do
+        [ -d "$c" ] || continue
+        printf 'Joy-Con %s: %s\n' "${c##*_serial}" "$(rd "$c/capacity_level")"
+    done
+}
+
+cmd_temp() {
+    local z
+    for z in /sys/class/thermal/thermal_zone*; do
+        printf '%-22s %s C\n' "$(rd "$z/type")" "$(temp_c "$z/temp")"
+    done
+}
+
+cmd_info() {
+    local kurz=${1:-}
+    local l4t bsp model
+    l4t=$(sed -n 's/^# R\([0-9]*\) (release), REVISION: \([0-9.]*\).*/R\1.\2/p' /etc/nv_tegra_release 2>/dev/null)
+    bsp=$(dpkg-query -W -f '${Version}' switch-bsp 2>/dev/null || echo ?)
+    model=$(tr -d '\0' < /proc/device-tree/model 2>/dev/null || echo ?)
+    # shellcheck source=/dev/null
+    . /etc/os-release
+    if [ "$kurz" = --kurz ]; then
+        printf '%s | Kernel %s | L4T %s | Akku %s %% | eMMC: %s\n' \
+            "${PRETTY_NAME:-Teria}" "$(uname -r)" "${l4t:-?}" \
+            "$(rd /sys/class/power_supply/battery/capacity)" "$(emmc_guard_state)"
+        return
+    fi
+    printf 'System:      %s\n' "${PRETTY_NAME:-?}"
+    printf 'Teria:       %s\n' "$(teria_version)"
+    printf 'Geraet:      %s\n' "$model"
+    printf 'Kernel:      %s\n' "$(uname -r)"
+    printf 'L4T:         %s (switch-bsp %s)\n' "${l4t:-?}" "$bsp"
+    printf 'Energie:     %s\n' "$(nvpmodel -q 2>/dev/null | sed -n 's/^NV Power Mode: //p' | head -n1)"
+    printf 'Root:        %s auf %s\n' "$(findmnt -no SOURCE /)" "$(root_disk)"
+    printf 'eMMC:        %s\n' "$(emmc_guard_state)"
+    if r2p_available; then printf 'Neustart:    r2p %s\n' "$(rd "$R2P"/action)"; fi
+    echo
+    cmd_akku
+    echo
+    printf 'CPU:   %s C   GPU: %s C\n' \
+        "$(temp_c "$(grep -l '^CPU-therm' /sys/class/thermal/thermal_zone*/type 2>/dev/null | head -n1 | xargs -r dirname)/temp")" \
+        "$(temp_c "$(grep -l '^GPU-therm' /sys/class/thermal/thermal_zone*/type 2>/dev/null | head -n1 | xargs -r dirname)/temp")"
+    df -h / | awk 'NR==2{printf "Speicher: %s von %s frei\n", $4, $2}'
+}
+
+cmd_guard() {
+    case "${1:-status}" in
+        status)
+            echo "eMMC-Schutz: $(emmc_guard_state)"
+            local d p
+            for d in $(mmc_disks_of_type MMC); do
+                echo "  $d ro=$(rd /sys/block/"$d"/ro)"
+                for p in $(emmc_hw_parts "$d"); do echo "  $p force_ro=$(rd /sys/block/"$p"/force_ro)"; done
+            done
+            for d in $(mmc_disks_of_type SD); do echo "  $d = SD-Karte (beschreibbar)"; done ;;
+        apply) need_root guard apply; /usr/lib/teria/emmc-guard ;;
+        *) usage; return 2 ;;
+    esac
+}
+
+cmd_reboot() {
+    r2p_available || { echo "r2p wird von diesem Kernel nicht unterstuetzt."; return 1; }
+    case "${1:-}" in
+        status) printf 'action=%s param1=%s param2=%s\n' "$(rd "$R2P"/action)" "$(rd "$R2P"/param1)" "$(rd "$R2P"/param2)"; return ;;
+        hekate) need_root reboot hekate; echo bootloader > "$R2P"/action ;;
+        linux)  need_root reboot linux;  echo self > "$R2P"/action ;;
+        *) echo "Aufruf: teria reboot hekate|linux|status"; return 2 ;;
+    esac
+    # ums wird bewusst nicht angeboten: param1 1..3 wuerde den eMMC per USB freigeben.
+    sync
+    systemctl reboot
+}
+
+cmd_wach() {
+    local h=${1:-2}
+    [[ "$h" =~ ^[0-9]+$ ]] || { echo "Stunden als ganze Zahl angeben."; return 2; }
+    echo "Standby fuer $h h verhindert (Strg+C beendet)."
+    exec systemd-inhibit --what=sleep:idle --who=teria --why="teria wachbleiben" sleep "$((h*3600))"
+}
+
+case "${1:-}" in
+    info) shift; cmd_info "$@" ;;
+    akku) cmd_akku ;;
+    temp) cmd_temp ;;
+    guard) shift; cmd_guard "$@" ;;
+    reboot) shift; cmd_reboot "$@" ;;
+    wachbleiben) shift; cmd_wach "$@" ;;
+    version|--version|-v) echo "Teria $(teria_version)" ;;
+    ""|help|-h|--help) usage ;;
+    *) echo "Unbekannter Befehl: $1"; usage; exit 2 ;;
+esac

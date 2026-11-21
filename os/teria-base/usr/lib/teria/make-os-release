@@ -1,0 +1,24 @@
+#!/bin/sh
+# Erzeugt /usr/lib/os-release fuer Teria aus dem umgeleiteten Ubuntu-Original.
+# ID=ubuntu bleibt erhalten, damit apt, PPAs und Ubuntu-Werkzeuge weiter funktionieren.
+set -e
+ORIG=/usr/lib/os-release.ubuntu
+OUT=/usr/lib/os-release
+[ -r "$ORIG" ] || exit 0
+VER=$(cat /usr/lib/teria/version 2>/dev/null || echo 0)
+# shellcheck source=/dev/null
+UVER=$(. "$ORIG"; echo "${VERSION:-$VERSION_ID}")
+tmp=$(mktemp "$OUT.XXXXXX")
+{
+    grep -v -E '^(NAME|PRETTY_NAME|VARIANT|VARIANT_ID|HOME_URL|BUG_REPORT_URL|SUPPORT_URL|LOGO|IMAGE_VERSION|BUILD_ID)=' "$ORIG"
+    echo "NAME=\"Teria\""
+    echo "PRETTY_NAME=\"Teria $VER (Ubuntu $UVER, Switchroot L4T)\""
+    echo "VARIANT=\"Teria\""
+    echo "VARIANT_ID=teria"
+    echo "BUILD_ID=$VER"
+    echo "HOME_URL=\"https://github.com/gigafrosxh/auto-injector-switch-v1\""
+    echo "BUG_REPORT_URL=\"https://github.com/gigafrosxh/auto-injector-switch-v1/issues\""
+    echo "SUPPORT_URL=\"https://github.com/gigafrosxh/auto-injector-switch-v1\""
+} > "$tmp"
+chmod 644 "$tmp"
+mv -f "$tmp" "$OUT"

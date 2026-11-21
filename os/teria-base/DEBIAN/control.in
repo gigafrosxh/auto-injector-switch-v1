@@ -1,0 +1,15 @@
+Package: teria-base
+Version: @VERSION@
+Architecture: all
+Maintainer: gigafrosxh <gigafrosxh@users.noreply.github.com>
+Depends: bash, coreutils, util-linux, systemd, udev, gawk | mawk
+Recommends: switch-bsp
+Section: admin
+Priority: optional
+Homepage: https://github.com/gigafrosxh/auto-injector-switch-v1
+Description: Teria - Betriebssystem-Schicht fuer die Nintendo Switch (Switchroot L4T)
+ Teria baut auf Switchroot L4T Ubuntu Noble auf und ergaenzt:
+  - das Werkzeug "teria" (Systeminfo, Akku, Temperaturen, Reboot-2-Payload),
+  - einen Schreibschutz fuer den internen eMMC (NAND) der Switch,
+  - eigenes os-release-Branding und eine Begruessung beim Anmelden.
+ Teria schreibt nie auf den internen eMMC.

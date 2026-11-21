@@ -2,5 +2,8 @@ config.json
 approved.txt
 autoinject.log
 autoinject.log.old
-payload/*.bin
+**/payload/*.bin
 *.zip
+dist/
+.claude-wa/
+.DS_Store

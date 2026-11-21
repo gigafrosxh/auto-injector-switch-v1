@@ -1,0 +1,5 @@
+# Teria: internen eMMC der Switch sofort schreibschuetzen, sobald er auftaucht.
+# Erkennung ueber den Kartentyp (MMC), nicht ueber den Namen (mmcblk0 ist unter Switchroot die SD).
+ACTION=="add|change", SUBSYSTEM=="block", KERNEL=="mmcblk[0-9]*", ATTRS{type}=="MMC", RUN+="/usr/lib/teria/emmc-guard"
+# eMMC im Dateimanager/udisks ausblenden, damit niemand ihn versehentlich formatiert.
+SUBSYSTEM=="block", KERNEL=="mmcblk[0-9]*", ATTRS{type}=="MMC", ENV{UDISKS_IGNORE}="1"

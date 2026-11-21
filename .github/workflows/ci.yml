@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: shellcheck
+        run: |
+          shellcheck -x -s bash os/teria-base/usr/bin/teria os/teria-base/usr/lib/teria/lib.sh \
+            os/teria-base/usr/lib/teria/emmc-guard tools/*.sh
+          shellcheck -s sh os/teria-base/usr/lib/teria/make-os-release os/teria-base/etc/update-motd.d/05-teria \
+            os/teria-base/DEBIAN/postinst os/teria-base/DEBIAN/prerm os/teria-base/DEBIAN/postrm
+
+      - name: Version aus Tag
+        id: v
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then v="${GITHUB_REF#refs/tags/v}"; else v="$(cat VERSION)"; fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Pakete bauen
+        run: |
+          tools/build-deb.sh "${{ steps.v.outputs.version }}"
+          tools/build-boot-zip.sh "${{ steps.v.outputs.version }}"
+          tools/build-injector-zip.sh "${{ steps.v.outputs.version }}"
+          ls -la dist
+
+      - name: Paket pruefen (Installation im Container)
+        run: |
+          docker run --rm -v "$PWD/dist:/dist" ubuntu:24.04 bash -euc '
+            apt-get -qq update >/dev/null
+            apt-get -qq install -y /dist/teria-base_*_all.deb >/dev/null
+            . /etc/os-release; echo "$PRETTY_NAME"; [ "$NAME" = Teria ]; [ "$ID" = ubuntu ]
+            teria version; teria guard status
+            apt-get -qq remove -y teria-base >/dev/null
+            . /etc/os-release; echo "nach Entfernen: $PRETTY_NAME"; [ "$NAME" = Ubuntu ]'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: teria-${{ steps.v.outputs.version }}
+          path: dist/*
+
+      - name: Release-Assets anhaengen
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" dist/* --clobber
+          else
+            pre=""; [[ "$tag" == *-* ]] && pre="--prerelease"
+            notes="release-notes/${tag#v}.md"; [ -f "$notes" ] || notes=/dev/null
+            gh release create "$tag" dist/* --title "Teria $tag" --notes-file "$notes" $pre
+          fi

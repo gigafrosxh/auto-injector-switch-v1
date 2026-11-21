@@ -1,15 +1,63 @@
-# auto-injector-switch-v1
+# Teria
 
-Windows-Hintergrundtool fuer eine **ungepatchte Nintendo Switch V1** (Tegra X1, RCM):
-Sobald die Switch im RCM-Modus per USB angeschlossen wird, injiziert es automatisch
-**Hekate**, und zwar nur, wenn der SHA256 der Payload-Datei stimmt.
-Kein manuelles Klicken in TegraRcmGUI mehr bei jedem Kaltstart.
+**Teria** ist ein eigenes, Linux-basiertes Betriebssystem für die **Nintendo Switch V1** (ungepatcht, Tegra X1).
+Es baut auf Switchroot L4T Ubuntu Noble auf und bringt den **Auto-Injector** mit, der Hekate automatisch
+per RCM startet, sobald die Switch am PC hängt.
 
-*English summary: a small PowerShell watcher that detects a Switch V1 in RCM
-(USB `0955:7321`) and auto-injects a SHA256-pinned Hekate payload via TegraRcmSmash.
-Nothing is written to the console's NAND/BOOT0. Injection is disabled until you run `-Approve`.*
+*English: Teria is a Linux-based OS layer for the Nintendo Switch V1 on top of Switchroot L4T Ubuntu Noble,
+bundled with a SHA256-pinned auto-injector for Hekate. It never writes to the internal eMMC.*
 
-## Eigenschaften
+| | |
+|---|---|
+| Version | siehe [VERSION](VERSION) und [Releases](https://github.com/gigafrosxh/auto-injector-switch-v1/releases) |
+| Basis | Switchroot L4T Ubuntu Noble 24.04, Kernel 4.9.140-l4t, L4T R32.3.1 |
+| Planung | [Meilensteine](https://github.com/gigafrosxh/auto-injector-switch-v1/milestones), [Issues](https://github.com/gigafrosxh/auto-injector-switch-v1/issues) |
+| Doku | [Analyse der Switch](docs/SWITCH-ANALYSE.md), [Architektur](docs/ARCHITEKTUR.md), [Sicherheit](docs/SICHERHEIT.md) |
+
+## Was Teria mitbringt
+
+- `teria info`: Kernel, L4T, BSP, Akku (Zyklen, Gesundheit, Joy-Cons), Temperaturen, Speicher, eMMC-Schutz
+- `teria akku`, `teria temp`
+- `teria reboot hekate` / `teria reboot linux`: Neustart über Reboot 2 Payload, ohne RCM und Jig
+- `teria wachbleiben [stunden]`: verhindert den automatischen Standby (z. B. für lange SSH-Sitzungen)
+- `teria guard status`: der interne eMMC wird beim Booten und beim Auftauchen schreibgeschützt und ausgeblendet
+- eigener Hekate-Eintrag „Teria“ mit Icon und Bootlogo (der Switchroot-Eintrag bleibt unverändert)
+- Auto-Injector für Windows (macOS/Linux folgt in 0.2.0)
+
+## Installation
+
+Voraussetzung: Switchroot L4T Ubuntu Noble läuft auf der Switch.
+
+```bash
+# auf der Switch
+sudo apt install ./teria-base_<version>_all.deb
+teria info
+```
+
+oder vom PC/Mac per SSH (fragt vor jedem Schritt):
+
+```bash
+tools/deploy.sh --host daniel@<ip-der-switch> --boot
+```
+
+Den Booteintrag kann man auch von Hand installieren: `teria-boot-<version>.zip` auf die FAT32-Partition der
+SD-Karte entpacken. Entfernen: `sudo apt remove teria-base`, dann `bootloader/ini/teria.ini` und
+`switchroot/teria/` löschen.
+
+## Selbst bauen
+
+```bash
+tools/build-deb.sh            # dist/teria-base_<version>_all.deb (braucht dpkg-deb)
+tools/build-boot-zip.sh       # dist/teria-boot-<version>.zip
+tools/build-injector-zip.sh   # dist/teria-injector-windows-<version>.zip
+```
+
+## Auto-Injector (Windows)
+
+Windows-Hintergrundtool: Sobald die Switch im RCM-Modus per USB angeschlossen wird, injiziert es automatisch
+**Hekate**, und zwar nur, wenn der SHA256 der Payload-Datei stimmt. Dateien: `injector/windows/`.
+
+### Eigenschaften
 
 - Erkennt die Switch im RCM (USB `0955:7321`) alle 2 Sekunden.
 - Prueft **vor jeder Injektion** den SHA256 des Payloads gegen den konfigurierten Hash
@@ -21,14 +69,14 @@ Nothing is written to the console's NAND/BOOT0. Injection is disabled until you 
 - Laeuft unsichtbar als Windows-Aufgabe bei der Anmeldung, ohne Adminrechte.
 - Log in `autoinject.log`.
 
-## Voraussetzungen
+### Voraussetzungen
 
 1. **Windows 10/11** mit Windows PowerShell 5.1 (vorinstalliert).
 2. **TegraRcmGUI** von https://github.com/eliboa/TegraRcmGUI/releases installieren und
    darueber den **libusbK-Treiber (APX)** einrichten. Das Tool nutzt das mitgelieferte
    `TegraRcmSmash.exe`. TegraRcmGUI selbst danach schliessen, sonst blockiert es das Geraet.
 3. **Hekate** von https://github.com/CTCaer/hekate/releases laden und
-   `hekate_ctcaer_X.Y.Z.bin` in den Ordner `payload/` legen.
+   `hekate_ctcaer_X.Y.Z.bin` in den Ordner `injector/windows/payload/` legen.
    Hekate und TegraRcmSmash sind bewusst **nicht** im Repo enthalten.
 
 Der voreingestellte Hash gehoert zu `hekate_ctcaer_6.5.5.bin`:
@@ -37,25 +85,25 @@ Der voreingestellte Hash gehoert zu `hekate_ctcaer_6.5.5.bin`:
 09752ABD207803708ADD6E22151E94B71FFBAAFF769D1BAD759584B76EF6F05E
 ```
 
-Pruefe ihn selbst: `Get-FileHash payload\hekate_ctcaer_6.5.5.bin`.
+Pruefe ihn selbst: `Get-FileHash injector\windows\payload\hekate_ctcaer_6.5.5.bin`.
 
-## Installation
+### Installation
 
 ```powershell
-# 1. Release-ZIP entpacken, z. B. nach C:\Tools\auto-injector-switch-v1
-# 2. Hekate-Payload nach payload\ kopieren
+# 1. Repo klonen oder Injector-ZIP entpacken (Befehle unten gelten vom Repo-Ordner aus)
+# 2. Hekate-Payload nach injector\windows\payload\ kopieren
 # 3. Optional: config.example.json nach config.json kopieren und anpassen
 # 4. Test ohne Injektion (Switch im RCM anschliessen, Strg+C zum Beenden):
-powershell -ExecutionPolicy Bypass -File .\SwitchAutoInject.ps1 -DryRun
+powershell -ExecutionPolicy Bypass -File .\injector\windows\SwitchAutoInject.ps1 -DryRun
 # 5. Freigabe erteilen:
-powershell -ExecutionPolicy Bypass -File .\SwitchAutoInject.ps1 -Approve
+powershell -ExecutionPolicy Bypass -File .\injector\windows\SwitchAutoInject.ps1 -Approve
 # 6. Autostart einrichten:
-powershell -ExecutionPolicy Bypass -File .\install-autostart.ps1
+powershell -ExecutionPolicy Bypass -File .\injector\windows\install-autostart.ps1
 ```
 
 Falls Windows die Skripte als "aus dem Internet" blockiert: `Get-ChildItem -Recurse | Unblock-File`.
 
-## Konfiguration (`config.json`)
+### Konfiguration (`config.json`)
 
 | Schluessel | Standard | Bedeutung |
 |---|---|---|
@@ -67,7 +115,7 @@ Falls Windows die Skripte als "aus dem Internet" blockiert: `Get-ChildItem -Recu
 
 Alle Werte lassen sich auch per Parameter setzen, z. B. `-PayloadPath D:\hekate.bin -PayloadSha256 ...`.
 
-## Befehle
+### Befehle
 
 | Befehl | Wirkung |
 |---|---|
@@ -79,7 +127,7 @@ Alle Werte lassen sich auch per Parameter setzen, z. B. `-PayloadPath D:\hekate.
 | `install-autostart.ps1` | Aufgabe "SwitchAutoInject" anlegen und starten |
 | `uninstall-autostart.ps1` | Aufgabe entfernen |
 
-## Grenzen: Kaltstart braucht weiterhin RCM
+### Grenzen: Kaltstart braucht weiterhin RCM
 
 Eine ausgeschaltete V1 startet immer Horizon, ausser sie wird ins RCM gebracht:
 Jig in die rechte Joy-Con-Schiene, VOL+ halten, Power druecken. Danach reicht es, das
@@ -88,7 +136,7 @@ USB-Kabel einzustecken; den Rest erledigt dieses Tool.
 **AutoRCM** wuerde den Jig ersparen, beschreibt aber BOOT0 im eMMC. Dieses Tool richtet
 das absichtlich nicht ein.
 
-## Neustarts ohne RCM (Switchroot Linux)
+### Neustarts ohne RCM (Switchroot Linux)
 
 Switchroot-Linux unterstuetzt "Reboot 2 Payload": Ein normaler Neustart landet wieder in
 Hekate, ganz ohne PC und Jig. Gesteuert ueber `r2p_action` in der Boot-Config
@@ -114,4 +162,4 @@ Vorsicht: `action=ums` mit `param1` 1 bis 3 gibt den **eMMC** per USB am PC frei
 
 ## Haftung
 
-Nutzung auf eigene Gefahr. Nur fuer eigene Geraete. Lizenz: MIT.
+Nutzung auf eigene Gefahr. Nur für eigene Geräte. Teria schreibt nie auf den internen eMMC. Lizenz: MIT.

@@ -1,0 +1,14 @@
+[Unit]
+Description=Teria: internen eMMC (NAND) der Switch schreibschuetzen
+DefaultDependencies=no
+After=systemd-udevd.service local-fs-pre.target
+Before=local-fs.target udisks2.service
+ConditionPathExists=/usr/lib/teria/emmc-guard
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/lib/teria/emmc-guard
+
+[Install]
+WantedBy=sysinit.target

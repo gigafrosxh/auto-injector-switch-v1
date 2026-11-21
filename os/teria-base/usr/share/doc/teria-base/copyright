@@ -1,0 +1,7 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: teria
+Source: https://github.com/gigafrosxh/auto-injector-switch-v1
+
+Files: *
+Copyright: 2026 gigafrosxh
+License: MIT

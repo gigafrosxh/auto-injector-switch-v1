@@ -1,0 +1,41 @@
+#!/bin/bash
+# Teria eMMC-Schutz: setzt den internen eMMC der Switch (und boot0/boot1) auf
+# schreibgeschuetzt. Aufruf beim Booten (teria-emmc-guard.service) und von udev,
+# sobald ein eMMC auftaucht (z. B. nach "mmc rescan").
+#
+# Erkennung ueber den Kartentyp (device/type = MMC), nie ueber den Namen.
+# Liegt das Root-Dateisystem auf dem eMMC (z. B. Linux auf eMMC installiert),
+# wird NICHTS gesperrt, sonst wuerde das System nicht mehr laufen. Es gibt dann
+# nur eine Warnung im Journal.
+set -u
+# shellcheck source=os/teria-base/usr/lib/teria/lib.sh
+. "${TERIA_LIB:-/usr/lib/teria}/lib.sh"
+
+log() { echo "teria-emmc-guard: $*"; logger -t teria-emmc-guard -- "$*" 2>/dev/null || true; }
+
+rootd=$(root_disk)
+rc=0
+
+for d in $(mmc_disks_of_type MMC); do
+    if [ "$d" = "$rootd" ]; then
+        log "WARNUNG: rootfs liegt auf dem eMMC ($d), Schreibschutz wird nicht gesetzt."
+        continue
+    fi
+    if blockdev --setro "/dev/$d" 2>/dev/null; then
+        log "$d (eMMC) schreibgeschuetzt."
+    else
+        log "FEHLER: konnte $d nicht schreibschuetzen."; rc=1
+    fi
+    for part in /sys/block/"$d"/"$d"p*; do
+        [ -e "$part" ] && blockdev --setro "/dev/${part##*/}" 2>/dev/null
+    done
+    for p in $(emmc_hw_parts "$d"); do
+        if [ -w "/sys/block/$p/force_ro" ]; then
+            echo 1 > "/sys/block/$p/force_ro" && log "$p force_ro=1."
+        fi
+        blockdev --setro "/dev/$p" 2>/dev/null || true
+    done
+done
+
+[ -z "$(mmc_disks_of_type MMC)" ] && log "kein eMMC sichtbar (Switchroot blendet ihn aus), nichts zu tun."
+exit $rc
