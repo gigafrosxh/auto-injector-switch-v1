@@ -38,9 +38,9 @@ cmd_akku() {
     echo
     printf 'Ladezyklen:  %s\n' "$(rd $b/cycle_count)"
     printf 'Temperatur:  %s C\n' "$(temp_c $b/temp)"
-    printf 'Leistung:    %s W\n' "$(awk -v p="$(rd $b/power_now)" 'BEGIN{ if (p=="?") print "?"; else printf "%.1f", p/1000000 }')"
+    printf 'Leistung:    %s W\n' "$(awk -v p="$(rd $b/power_now)" 'BEGIN{ if (p=="?") print "?"; else { if (p<0) p=-p; printf "%.1f", p/1000000 } }')"
     local lim; lim=$(rd /sys/class/power_supply/usb/charge_control_limit)
-    [ "$lim" != "?" ] && printf 'Ladegrenze:  %s %%\n' "$lim"
+    [ "$lim" != "?" ] && [ "$lim" != 0 ] && printf 'Ladegrenze:  %s %%\n' "$lim"
     local c
     for c in /sys/class/power_supply/nintendo_switch_controller_battery_*; do
         [ -d "$c" ] || continue

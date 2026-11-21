@@ -134,7 +134,7 @@ const RENDER = {
     heroApp = heroApp && list.includes(heroApp) ? heroApp : list[0] || null;
     const tiles = list.slice(0, 6).map((a, i) => `<div ${nav("appicon", "app:" + a.id, `data-onsel="hero" data-app="${esc(a.id)}" onclick="launch('${esc(a.id)}')" ${a === heroApp ? "data-first=1" : ""} style="width:104px;height:104px;${tileStyle(a)}"`)}>${artOf(a) ? "" : iconHtml(a, 40)}</div>`).join("");
     const sysT = sys.map(([n, g, bg, act]) => `<div ${nav("appicon", "sys:" + n, `data-onsel="hero" data-sys="${n}" onclick="doAct('${act}')" style="width:104px;height:104px;background:${bg}"`)}>${ic(g, 40)}</div>`).join("");
-    const recent = APPS.filter(a => a !== heroApp).slice(0, 3);
+    const recent = APPS.filter(a => a !== heroApp && a.recent != null).slice(0, 3);
     $("#v-home").innerHTML = `<div class="bg" id="homebg" style="background-image:url(art/home.jpg)"></div>
     <div class="shade" style="background:linear-gradient(90deg,rgba(6,7,18,.92) 0%,rgba(6,7,18,.55) 45%,rgba(6,7,18,0) 75%),linear-gradient(0deg,rgba(6,7,18,.95) 0%,rgba(6,7,18,0) 45%)"></div>
     ${statusBar(`<div class="tabs">${[["spiele", "Spiele"], ["apps", "Apps"], ["medien", "Medien"]].map(([k, t]) => `<span class="tab ${tab === k ? "on" : ""}" onclick="homeTab('${k}')">${t}</span>`).join("")}</div>`)}
@@ -332,7 +332,7 @@ function toggleQuick(on = !$("#quick").classList.contains("on")) {
 
 // ---------------------------------------------------------------- Aktionen
 const JOBS = {};
-async function launch(id) { const r = await api("/api/launch", { id }); const a = APPS.find(x => x.id === id); toast(r.ok ? `${a ? a.name : "App"} wird gestartet …` : "Konnte nicht gestartet werden"); if (r.ok && a) { APPS = [a, ...APPS.filter(x => x !== a)]; } }
+async function launch(id) { const r = await api("/api/launch", { id }); const a = APPS.find(x => x.id === id); toast(r.ok ? `${a ? a.name : "App"} wird gestartet …` : "Konnte nicht gestartet werden"); if (r.ok && a) { a.recent = 0; APPS = [a, ...APPS.filter(x => x !== a)]; } }
 function doAct(a) {
   if (a.startsWith("go:")) return show(a.slice(3));
   if (a === "desktop") { toggleQuick(false); api("/api/action/mode", { value: "desktop" }); return toast("Desktop-Modus …"); }
