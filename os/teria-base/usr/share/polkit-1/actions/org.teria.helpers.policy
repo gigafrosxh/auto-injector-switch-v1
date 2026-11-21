@@ -3,6 +3,12 @@
  "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
 <policyconfig>
   <vendor>Teria</vendor>
+  <action id="org.teria.setup-account">
+    <description>Teria erstmals einrichten</description>
+    <message>Gerät und lokales Konto einrichten</message>
+    <defaults><allow_any>no</allow_any><allow_inactive>no</allow_inactive><allow_active>yes</allow_active></defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/teria/setup-account</annotate>
+  </action>
   <action id="org.teria.perf">
     <description>Leistungsprofil wechseln</description>
     <message>Leistungsprofil der Switch wechseln</message>

@@ -35,7 +35,7 @@ Kurz: `teria-<version>-sd.zip` aus dem Release auf die FAT32-Partition der SD-Ka
 **Nyx → Tools → Partition SD → Flash Linux**, dann **More configs → Teria**. Das überschreibt Ubuntu.
 Vorher sichern. Ohne Risiko testen geht vom USB-Stick am Dock. Alles Schritt für Schritt: [docs/INSTALLATION.md](docs/INSTALLATION.md).
 
-Anmeldung beim ersten Start: `teria` / `teria`, das Passwort muss sofort geändert werden.
+Beim ersten Start eines neuen Images richtet der Vollbild-Assistent das persönliche Konto ein. Alternativ übernimmt Teria das Passwort aus `teria-setup.txt`.
 
 Nur das Werkzeug `teria` in einem bestehenden Switchroot Ubuntu: `sudo apt install ./teria-base_<version>_all.deb`
 oder vom PC/Mac `tools/deploy.sh --host daniel@<ip-der-switch>`.

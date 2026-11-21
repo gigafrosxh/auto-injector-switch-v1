@@ -7,6 +7,13 @@ set -u
 . "${TERIA_LIB:-/usr/lib/teria}/lib.sh"
 log() { echo "teria-setup: $*"; }
 USER_NAME=teria
+account_state=/var/lib/teria/setup-account
+if [ -f "$account_state" ]; then
+    # Ein fehlgeschlagenes Umbenennen darf WLAN und Passwort von der SD nicht blockieren.
+    /usr/lib/teria/setup-account --boot || log "Konto-Umbenennung fehlgeschlagen"
+    read -r phase configured_user < "$account_state"
+    [ "$phase" != "done" ] || USER_NAME=$configured_user
+fi
 
 SD=$(sd_mount) || { log "keine SD-Bootpartition gefunden"; exit 0; }
 F="$SD/teria-setup.txt"
@@ -94,6 +101,9 @@ esac
 
 if [ "${#clear_fields[@]}" -gt 0 ]; then
     sed -i "${clear_fields[@]}" "$F" || status=1
+fi
+if [ "$status" = 0 ] && [ -n "$pw" ] && [ -f "$account_state" ] && [ "${phase:-}" = pending ]; then
+    printf 'done %s\n' "$USER_NAME" > "$account_state"
 fi
 sync
 umount "$SD" 2>/dev/null
