@@ -115,6 +115,8 @@ echo 'teria:teria' | in_root chpasswd
 # Automatische Anmeldung (Switch hat meist keine Tastatur); Passwort setzt man ueber teria-setup.txt
 in_root groupadd -rf autologin
 in_root usermod -aG autologin teria
+install -d -m 755 "$ROOT/var/lib/teria"
+echo pending > "$ROOT/var/lib/teria/setup-account"
 in_root systemctl enable lightdm.service NetworkManager.service ssh.service teria-firstboot.service teria-emmc-guard.service teria-setup.service teria-bootlog.timer
 # Nur der L4T-Laufzeitdienst darf dhcpd starten, gebunden an l4tbr0.
 in_root systemctl mask isc-dhcp-server.service isc-dhcp-server6.service

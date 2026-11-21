@@ -33,7 +33,7 @@ Ubuntu bleibt unverändert.
 4. SD zurück, Hekate starten: **Nyx → Tools → Partition SD → Flash Linux**. Hekate schreibt `l4t.*` auf die Linux-Partition.
    Danach kann `switchroot/install/` gelöscht werden.
 5. In Hekate **More configs → Teria** starten.
-6. Teria meldet `teria` automatisch an. WLAN und eigenes Passwort trägst du vorher in `teria-setup.txt` ein (siehe unten).
+6. Teria meldet `teria` automatisch an. Auf einem neuen Image führt dich der Vollbild-Assistent durch Sprache, Zeitzone, WLAN und Konto. Mit dem Steuerkreuz navigierst du, mit A wählst du aus, mit + gehst du weiter. Für die Offline-Einrichtung lässt du das WLAN-Feld leer. Nach dem Speichern startet die Schaltfläche **Jetzt neu starten** die erste Sitzung unter deinem Kontonamen. Alternativ kannst du vorab ein Passwort in `teria-setup.txt` setzen (siehe unten).
    Beim ersten Start wird die Partition automatisch auf die volle Größe gebracht.
 
 Den alten Eintrag `L4T-noble.ini` kann man danach löschen, er bootet ja ins überschriebene System nicht mehr sinnvoll.

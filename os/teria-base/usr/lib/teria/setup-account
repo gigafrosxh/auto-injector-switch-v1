@@ -1,0 +1,116 @@
+#!/usr/bin/python3 -I
+"""Einmalige Einrichtung eines neuen Teria-Images. Eingabe nur über stdin."""
+import fcntl
+import hashlib
+import json
+import os
+import pwd
+import re
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+from zoneinfo import available_timezones
+
+STATE = Path("/var/lib/teria/setup-account")
+AUTOLOGIN = Path("/etc/lightdm/lightdm.conf.d/70-teria-autologin.conf")
+
+
+def write(path, content, mode):
+    with tempfile.NamedTemporaryFile(dir=path.parent, mode="w", delete=False) as out:
+        out.write(content)
+        out.flush()
+        os.fchmod(out.fileno(), mode)
+        os.fsync(out.fileno())
+    os.replace(out.name, path)
+
+
+def account(name):
+    try:
+        return pwd.getpwnam(name)
+    except KeyError:
+        return None
+
+
+def validate(values, uid):
+    name = values["name"]
+    if not re.fullmatch(r"[a-z][a-z0-9_-]{0,30}", name):
+        raise ValueError("Benutzername ungültig")
+    target = account(name)
+    if target and target.pw_uid != uid:
+        raise ValueError("Benutzername schon vergeben")
+    pw = values["password"]
+    if not 8 <= len(pw) <= 256 or any(ord(c) < 32 for c in pw):
+        raise ValueError("Passwort ungültig")
+    if values["locale"] not in ("de_DE.UTF-8", "en_US.UTF-8"):
+        raise ValueError("Sprache ungültig")
+    if values["zone"] not in available_timezones():
+        raise ValueError("Zeitzone ungültig")
+    ssid = values["ssid"].encode("utf-8")
+    key = values["wifiPassword"]
+    if len(ssid) > 32 or (key and not ssid):
+        raise ValueError("WLAN-Name ungültig")
+    if key and not (8 <= len(key.encode()) <= 63 or re.fullmatch("[0-9a-fA-F]{64}", key)):
+        raise ValueError("WLAN-Passwort ungültig")
+    return ssid, key
+
+
+def setup(values):
+    factory = account("teria")
+    if not factory or str(factory.pw_uid) != os.environ.get("PKEXEC_UID"):
+        raise ValueError("Nur in der lokalen Erstsitzung verfügbar")
+    if STATE.read_text().strip() != "pending":
+        raise ValueError("Einrichtung bereits abgeschlossen")
+    ssid, key = validate(values, factory.pw_uid)
+    name, zone = values["name"], values["zone"]
+    subprocess.run(["timedatectl", "set-timezone", zone], check=True)
+    subprocess.run(["update-locale", "LANG=" + values["locale"]], check=True)
+    if ssid:
+        # Byte-Liste und hexadezimaler PSK halten Nutzereingaben aus der Keyfile-Syntax.
+        network = "[connection]\nid=Teria WLAN\ntype=wifi\nautoconnect=true\n[wifi]\nssid="
+        network += "".join(f"{b};" for b in ssid) + "\n"
+        if key:
+            psk = key if len(key) == 64 and key.isascii() else hashlib.pbkdf2_hmac("sha1", key.encode(), ssid, 4096, 32).hex()
+            network += f"[wifi-security]\nkey-mgmt=wpa-psk\npsk={psk}\n"
+        network += "[ipv4]\nmethod=auto\n[ipv6]\nmethod=auto\n"
+        write(Path("/etc/NetworkManager/system-connections/teria-first-run.nmconnection"), network, 0o600)
+    subprocess.run(["chpasswd"], input="teria:" + values["password"] + "\n", text=True, check=True)
+    # Die laufende grafische Sitzung behält ihre UID. usermod läuft vor dem nächsten Login.
+    write(STATE, f"rename {name} {factory.pw_uid}\n", 0o644)
+
+
+def finish_boot():
+    state = STATE.read_text().split()
+    if state[0] != "rename":
+        return
+    _, name, uid = state
+    current = pwd.getpwuid(int(uid)).pw_name
+    if current != name:
+        if current != "teria" or account(name):
+            raise ValueError("Konto hat sich seit der Einrichtung geändert")
+        subprocess.run(["usermod", "--login", name, "teria"], check=True)
+    if AUTOLOGIN.exists():
+        write(AUTOLOGIN, AUTOLOGIN.read_text().replace("autologin-user=teria\n", f"autologin-user={name}\n"), 0o644)
+    write(STATE, f"done {name}\n", 0o644)
+
+
+def main():
+    if os.geteuid() != 0 or not STATE.is_file():
+        raise ValueError("Nur auf einem neuen Teria-Image verfügbar")
+    with (STATE.parent / "setup-account.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        if sys.argv[1:] == ["--boot"] and "PKEXEC_UID" not in os.environ:
+            finish_boot()
+        elif not sys.argv[1:]:
+            setup(json.loads(sys.stdin.buffer.read(8193).decode()))
+        else:
+            raise ValueError("Ungültiger Aufruf")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as exc:
+        # JSON- und PAM-Eingaben können Geheimnisse enthalten.
+        print(str(exc) if type(exc) is ValueError else "Einrichtung fehlgeschlagen", file=sys.stderr)
+        sys.exit(1)

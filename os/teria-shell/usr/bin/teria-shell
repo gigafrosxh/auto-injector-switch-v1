@@ -28,6 +28,13 @@ def show_running():
 def main():
     if "--show" in sys.argv:
         return show_running()
+    from pathlib import Path
+    state = Path("/var/lib/teria/setup-account")
+    if state.is_file() and "--browser" not in sys.argv:
+        stage = state.read_text().split()[0]
+        if stage in ("pending", "rename"):
+            import setup_wizard
+            return setup_wizard.run(stage)
     import server
     srv = server.serve(0)
     port = srv.server_address[1]

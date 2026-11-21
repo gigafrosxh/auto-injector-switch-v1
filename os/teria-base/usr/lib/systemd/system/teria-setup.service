@@ -1,7 +1,7 @@
 [Unit]
 Description=Teria: Einrichtung ueber teria-setup.txt auf der SD-Karte
 After=local-fs.target teria-firstboot.service
-Before=NetworkManager.service lightdm.service display-manager.service
+Before=ssh.service ssh.socket NetworkManager.service lightdm.service display-manager.service
 
 [Service]
 Type=oneshot

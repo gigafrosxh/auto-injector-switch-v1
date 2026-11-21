@@ -4,6 +4,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-21
+
+### Neu
+- Beim ersten Start eines neuen Images richtet ein Vollbild-Assistent Sprache, Zeitzone, WLAN und das persönliche Konto ein. Touch, Joy-Cons und Bildschirmtastatur werden unterstützt (#27).
+
 ## [0.3.7] - 2026-11-21
 
 ### Behoben
