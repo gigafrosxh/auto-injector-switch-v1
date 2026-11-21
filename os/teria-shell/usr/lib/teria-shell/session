@@ -10,8 +10,6 @@ done
 command -v unclutter >/dev/null && unclutter --timeout 3 --jitter 10 &
 command -v nm-applet >/dev/null && nm-applet --indicator >/dev/null 2>&1 &
 # Bei Absturz der Oberflaeche nicht im leeren Bildschirm landen
-while :; do
-    teria-shell
-    [ $? -eq 0 ] && break
+until teria-shell; do
     sleep 1
 done
