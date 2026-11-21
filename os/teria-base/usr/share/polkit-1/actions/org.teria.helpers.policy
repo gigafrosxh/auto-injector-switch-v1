@@ -18,7 +18,7 @@
   <action id="org.teria.pkg">
     <description>Software aus dem Teria-Store installieren</description>
     <message>Zum Installieren wird dein Passwort benötigt</message>
-    <defaults><allow_any>no</allow_any><allow_inactive>no</allow_inactive><allow_active>auth_admin_keep</allow_active></defaults>
+    <defaults><allow_any>no</allow_any><allow_inactive>no</allow_inactive><allow_active>yes</allow_active></defaults>
     <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/teria/pkg</annotate>
   </action>
 </policyconfig>

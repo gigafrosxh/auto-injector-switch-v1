@@ -60,6 +60,8 @@ svg.ic{display:block;flex:none}
 #hero p{color:var(--ink2);font-size:17px;line-height:1.5;margin:0}
 #recent{display:flex;gap:14px}
 .mini{width:170px}.mini .art{height:92px;border-radius:14px;background-size:cover;background-position:center;box-shadow:0 8px 24px rgba(0,0,0,.4);display:grid;place-items:center}
+.mini .art img{width:44px;height:44px;object-fit:contain}
+.cell .art img{width:64px;height:64px;object-fit:contain}
 .mini div:last-child{font-size:14px;margin-top:8px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Overlay Schnellmenü */
 #quick{position:absolute;inset:0;z-index:40;display:none}

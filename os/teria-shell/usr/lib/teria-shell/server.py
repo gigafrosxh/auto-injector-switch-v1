@@ -76,10 +76,10 @@ def battery():
     return {
         "capacity": int(cap) if cap and cap.isdigit() else None,
         "charging": rd(b + "/status") == "Charging",
-        "power_w": round(int(power) / 1e6, 1) if power and power.lstrip("-").isdigit() else None,
+        "power_w": round(abs(int(power)) / 1e6, 1) if power and power.lstrip("-").isdigit() else None,
         "cycles": rd(b + "/cycle_count"),
         "health": round(int(full) * 100 / int(design)) if full and design and design != "0" else None,
-        "limit": rd("/sys/class/power_supply/usb/charge_control_limit"),
+        "limit": (lambda v: v if v and v not in ("0", "100") else None)(rd("/sys/class/power_supply/usb/charge_control_limit")),
         "joycons": jc,
     }
 
@@ -179,7 +179,13 @@ DESKTOP_DIRS = ["/usr/share/applications", "/usr/local/share/applications",
                 os.path.expanduser("~/.local/share/applications"),
                 "/var/lib/flatpak/exports/share/applications",
                 os.path.expanduser("~/.local/share/flatpak/exports/share/applications")]
-HIDDEN = {"teria-shell.desktop"}
+HIDDEN = {"teria-shell.desktop", "xfce4-session-logout.desktop", "xfce4-mail-reader.desktop", "xfce4-web-browser.desktop",
+          "xfce4-file-manager.desktop", "xfce4-terminal-emulator.desktop", "thunar-bulk-rename.desktop",
+          "onboard-settings.desktop", "blueman-adapters.desktop", "panel-preferences.desktop", "nm-connection-editor.desktop",
+          "xfce4-settings-editor.desktop", "xfce4-terminal-settings.desktop", "thunar-settings.desktop",
+          "org.xfce.mousepad-settings.desktop", "xfce-settings-manager.desktop", "debian-uxterm.desktop", "debian-xterm.desktop"}
+# Einstellungsdialoge von Xfce gehoeren in den Desktop-Modus, nicht in die Konsolen-Oberflaeche
+HIDDEN_CATS = {"X-XFCE-SettingsDialog", "X-XFCE-HardwareSettings", "X-XFCE-PersonalSettings", "X-XFCE-SystemSettings", "DesktopSettings", "HardwareSettings"}
 
 
 def category(cats):
@@ -213,6 +219,8 @@ def list_apps():
                 continue
             if e.get("Type") != "Application" or e.get("NoDisplay", "false") == "true" or e.get("Hidden", "false") == "true":
                 continue
+            if e.get("Terminal", "false") == "true" or set(e.get("Categories", "").split(";")) & HIDDEN_CATS:
+                continue
             only = e.get("OnlyShowIn", "")
             if only and "XFCE" not in only and "Teria" not in only:
                 continue
@@ -222,6 +230,8 @@ def list_apps():
                          "category": category(e.get("Categories", "")), "icon": e.get("Icon", "")})
     recent = load_recent()
     order = {a: i for i, a in enumerate(recent)}
+    for a in apps:
+        a["recent"] = order.get(a["id"])
     apps.sort(key=lambda a: (order.get(a["id"], 10_000), a["name"].lower()))
     return apps
 
@@ -612,10 +622,10 @@ MOCK_INFO = {"System": "Teria 0.3.0 (Debian GNU/Linux 13, Switchroot L4T)", "Ger
              "Kernel": "4.9.140-l4t", "L4T": "R32.3.1 (switch-bsp 5.1.2-34+24.04)", "eMMC": "geschützt",
              "Root": "/dev/mmcblk0p2 auf mmcblk0"}
 MOCK_APPS = [
-    {"id": "orbitfall.desktop", "name": "Orbitfall", "comment": "Kapitel 3 · Der Ring um Teria", "category": "spiele", "icon": "", "art": "t-orbit"},
-    {"id": "sternenlaeufer.desktop", "name": "Sternenläufer", "comment": "Endlos-Rennen durchs All", "category": "spiele", "icon": "", "art": "t-sterne"},
-    {"id": "pixelgarten.desktop", "name": "Pixelgarten", "comment": "Gemütliches Aufbauspiel", "category": "spiele", "icon": "", "art": "t-pixel"},
-    {"id": "abendrot.desktop", "name": "Abendrot", "comment": "Erkundung bei Sonnenuntergang", "category": "spiele", "icon": "", "art": "t-berg"},
+    {"id": "orbitfall.desktop", "name": "Orbitfall", "comment": "Kapitel 3 · Der Ring um Teria", "category": "spiele", "icon": "", "art": "t-orbit", "recent": 0},
+    {"id": "sternenlaeufer.desktop", "name": "Sternenläufer", "comment": "Endlos-Rennen durchs All", "category": "spiele", "icon": "", "art": "t-sterne", "recent": 1},
+    {"id": "pixelgarten.desktop", "name": "Pixelgarten", "comment": "Gemütliches Aufbauspiel", "category": "spiele", "icon": "", "art": "t-pixel", "recent": 2},
+    {"id": "abendrot.desktop", "name": "Abendrot", "comment": "Erkundung bei Sonnenuntergang", "category": "spiele", "icon": "", "art": "t-berg", "recent": 3},
     {"id": "code-studio.desktop", "name": "Code-Studio", "comment": "Entwicklungsumgebung", "category": "entwicklung", "icon": "", "art": "t-code"},
     {"id": "wellen.desktop", "name": "Wellen", "comment": "Musik", "category": "medien", "icon": "", "art": "t-wellen"},
     {"id": "firefox-esr.desktop", "name": "Browser", "comment": "Im Internet surfen", "category": "apps", "icon": "", "glyph": "globe"},
