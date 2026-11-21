@@ -78,6 +78,8 @@ in_root() { chroot "$ROOT" /usr/bin/env DEBIAN_FRONTEND=noninteractive LC_ALL=C.
 log "L4T-Repo einbinden"
 install -D -m 644 os/image/apt/theofficialgman-L4T.asc "$ROOT/etc/apt/keyrings/theofficialgman-L4T.asc"
 echo "deb [signed-by=/etc/apt/keyrings/theofficialgman-L4T.asc] $L4T_REPO l4t noble" > "$ROOT/etc/apt/sources.list.d/l4t.list"
+# libpcre3 (von nvidia-l4t-multimedia gebraucht) gibt es in trixie nicht mehr, nur in bookworm (per Pin begrenzt)
+echo "deb $MIRROR bookworm main" > "$ROOT/etc/apt/sources.list.d/bookworm-compat.list"
 install -m 644 os/image/apt/teria-l4t.pref "$ROOT/etc/apt/preferences.d/teria-l4t.pref"
 in_root apt-get update
 
