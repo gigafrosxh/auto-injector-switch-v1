@@ -1,0 +1,6 @@
+config.json
+approved.txt
+autoinject.log
+autoinject.log.old
+payload/*.bin
+*.zip

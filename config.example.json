@@ -1,0 +1,7 @@
+{
+  "PayloadPath": "payload\\hekate_ctcaer_6.5.5.bin",
+  "PayloadSha256": "09752ABD207803708ADD6E22151E94B71FFBAAFF769D1BAD759584B76EF6F05E",
+  "SmashExe": "C:\\Program Files (x86)\\TegraRcmGUI\\TegraRcmSmash.exe",
+  "PollSeconds": 2,
+  "MaxTries": 3
+}
