@@ -7,7 +7,7 @@ OUT=/usr/lib/os-release
 [ -r "$ORIG" ] || exit 0
 VER=$(cat /usr/lib/teria/version 2>/dev/null || echo 0)
 # shellcheck source=/dev/null
-UVER=$(. "$ORIG"; echo "${VERSION:-$VERSION_ID}")
+UVER=$(. "$ORIG"; echo "$VERSION_ID")
 tmp=$(mktemp "$OUT.XXXXXX")
 {
     grep -v -E '^(NAME|PRETTY_NAME|VARIANT|VARIANT_ID|HOME_URL|BUG_REPORT_URL|SUPPORT_URL|LOGO|IMAGE_VERSION|BUILD_ID)=' "$ORIG"
