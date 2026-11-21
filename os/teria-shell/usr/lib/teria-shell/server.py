@@ -281,8 +281,11 @@ def launch(aid):
         return False
     if not any(os.path.exists(os.path.join(d, aid)) for d in DESKTOP_DIRS):
         return False
-    subprocess.Popen(["gtk-launch", aid[:-8]], start_new_session=True,
-                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        subprocess.run(["gtk-launch", aid[:-8]], start_new_session=True, check=True, timeout=10,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except (OSError, subprocess.SubprocessError):
+        return False
     remember(aid)
     return True
 

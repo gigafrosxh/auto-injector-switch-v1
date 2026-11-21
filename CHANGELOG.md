@@ -4,6 +4,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-11-21
+
+### Behoben
+- Terminal und andere Apps lassen sich aus der Teria-Bibliothek öffnen. Fehlgeschlagene Startversuche erscheinen nicht im Verlauf (#40).
+
 ## [0.3.2] - 2026-11-21
 
 ### Behoben
