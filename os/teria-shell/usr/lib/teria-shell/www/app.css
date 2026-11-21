@@ -64,7 +64,8 @@ svg.ic{display:block;flex:none}
 /* Overlay Schnellmenü */
 #quick{position:absolute;inset:0;z-index:40;display:none}
 #quick.on{display:block}
-#quick .veil{position:absolute;inset:0;background:rgba(5,6,15,.55)}
+#quick .veil{position:absolute;inset:0;background:rgba(5,6,15,.84)}
+#stage.dim .view.on .hints,#stage.dim .view.on .status{visibility:hidden}
 #stage.dim .view.on{filter:blur(10px) brightness(.45);transform:scale(1.03)}
 .qt{padding:16px;display:flex;flex-direction:column;gap:14px}
 .qt.on{background:rgba(62,224,197,.16);border-color:rgba(62,224,197,.45)}
