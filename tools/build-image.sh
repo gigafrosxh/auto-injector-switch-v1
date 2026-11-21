@@ -91,6 +91,8 @@ touch "$ROOT/opt/switchroot/image_prep"
 in_root apt-get install -y --no-install-recommends $(pkgs os/image/packages-l4t.txt)
 [ -d "$ROOT/lib/modules/4.9.140-l4t" ] || { echo "Kernelmodule fehlen."; exit 1; }
 [ -f "$ROOT/opt/switchroot/bootstack/uImage" ] || { echo "Bootstack fehlt."; exit 1; }
+# NVIDIAs Ubuntu-Einrichtungsassistent (oem-config) passt nicht zu Teria
+in_root systemctl mask nv-oem-config.target nv-oem-config-debconf@.service nv-oem-config-gui.service >/dev/null 2>&1 || true
 
 log "teria-base"
 cp "$TERIA_DEB" "$ROOT/tmp/teria-base.deb"
