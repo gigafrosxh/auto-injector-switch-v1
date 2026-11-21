@@ -49,8 +49,10 @@ passwort=mein-neues-passwort
 automatische_anmeldung=ja
 ```
 
-Teria übernimmt die Werte beim Start (WLAN, Passwort für `teria`, automatische Anmeldung) und löscht die
-Passwörter danach aus der Datei. Ohne Eintrag bleibt das Passwort `teria`, und die Anmeldung erfolgt automatisch.
+Teria leert WLAN-Name und WLAN-Passwort auf der SD, sobald das WLAN-Profil gespeichert ist.
+Das Benutzerpasswort entfernt Teria nach erfolgreicher Übernahme ebenfalls aus der Datei.
+Wenn Teria 0.3.1 die WLAN-Verbindung nach einem Neustart verloren hat, trage WLAN-Name und
+WLAN-Passwort einmal neu ein. Für ein neues offenes Netz genügt der WLAN-Name.
 
 ## Bootprotokolle
 
