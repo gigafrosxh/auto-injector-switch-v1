@@ -112,8 +112,11 @@ echo teria > "$ROOT/etc/hostname"
 for g in sudo audio video plugdev netdev bluetooth input render dialout; do in_root getent group $g >/dev/null || in_root groupadd -r $g; done
 in_root useradd -m -s /bin/bash -G sudo,audio,video,plugdev,netdev,bluetooth,input,render,dialout teria
 echo 'teria:teria' | in_root chpasswd
-in_root chage -d 0 teria        # Passwort muss beim ersten Anmelden geaendert werden
-in_root systemctl enable lightdm.service NetworkManager.service ssh.service teria-firstboot.service teria-emmc-guard.service
+# Automatische Anmeldung (Switch hat meist keine Tastatur); Passwort setzt man ueber teria-setup.txt
+in_root groupadd -rf autologin
+in_root usermod -aG autologin teria
+in_root systemctl enable lightdm.service NetworkManager.service ssh.service teria-firstboot.service teria-emmc-guard.service teria-setup.service teria-bootlog.timer
+in_root systemctl enable nv-l4t-usb-device-mode.service || echo "Hinweis: USB-Geraetemodus nicht vorhanden"
 in_root systemctl set-default graphical.target
 
 log "Aufraeumen"
@@ -144,6 +147,7 @@ rm -f "$SD/switchroot/teria/bootlogo_ubuntu.bmp" "$SD/switchroot/teria/icon_ubun
 cp boot/teria/icon_teria.bmp boot/teria/bootlogo_teria.bmp "$SD/switchroot/teria/"
 cp boot/teria/teria.ini "$SD/bootloader/ini/teria.ini"
 cp boot/teria/teria-usb.ini "$SD/extras/bootloader/ini/teria-usb.ini"
+cp boot/teria/teria-setup.txt "$SD/teria-setup.txt"
 split -b "$PART_SIZE" -d -a 2 "$IMG" "$SD/switchroot/install/l4t."
 (cd "$SD" && find . -type f -print0 | sort -z | xargs -0 sha256sum > "$WORK/SHA256SUMS" && mv "$WORK/SHA256SUMS" SHA256SUMS)
 ZIP=$OUT/teria-$VERSION-sd.zip

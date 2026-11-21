@@ -1,0 +1,6 @@
+[Unit]
+Description=Teria: Bootprotokolle auf die SD-Karte schreiben
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/teria/bootlog

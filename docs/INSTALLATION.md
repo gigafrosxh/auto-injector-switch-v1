@@ -33,10 +33,30 @@ Ubuntu bleibt unverändert.
 4. SD zurück, Hekate starten: **Nyx → Tools → Partition SD → Flash Linux**. Hekate schreibt `l4t.*` auf die Linux-Partition.
    Danach kann `switchroot/install/` gelöscht werden.
 5. In Hekate **More configs → Teria** starten.
-6. Anmelden mit `teria` / `teria`. Das Passwort muss sofort geändert werden.
+6. Teria meldet `teria` automatisch an. WLAN und eigenes Passwort trägst du vorher in `teria-setup.txt` ein (siehe unten).
    Beim ersten Start wird die Partition automatisch auf die volle Größe gebracht.
 
 Den alten Eintrag `L4T-noble.ini` kann man danach löschen, er bootet ja ins überschriebene System nicht mehr sinnvoll.
+
+## Einrichtung ohne Tastatur: teria-setup.txt
+
+Auf der FAT32-Partition der SD liegt `teria-setup.txt`. Am PC/Mac ausfüllen, bevor Teria startet:
+
+```
+wlan_name=MeinWLAN
+wlan_passwort=geheim
+passwort=mein-neues-passwort
+automatische_anmeldung=ja
+```
+
+Teria übernimmt die Werte beim Start (WLAN, Passwort für `teria`, automatische Anmeldung) und löscht die
+Passwörter danach aus der Datei. Ohne Eintrag bleibt das Passwort `teria`, und die Anmeldung erfolgt automatisch.
+
+## Bootprotokolle
+
+90 Sekunden nach jedem Start legt Teria Protokolle unter `teria-logs/` auf der FAT32-Partition ab
+(Journal, Xorg, LightDM, Netzwerk). Die letzten fünf Starts bleiben erhalten. Lesen: Hekate → Tools →
+USB Tools → SD Card an den PC/Mac.
 
 ## Zurück zu Ubuntu
 

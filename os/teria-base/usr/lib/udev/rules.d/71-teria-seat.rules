@@ -1,0 +1,3 @@
+# Teria: Der Bildschirm der Switch ist ein fbdev-Geraet (Tegra DC). Als Haupt-Grafikgeraet
+# von seat0 markieren, damit logind den Sitz als grafisch meldet.
+SUBSYSTEM=="graphics", KERNEL=="fb0", TAG+="seat", TAG+="master-of-seat"

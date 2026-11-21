@@ -1,0 +1,8 @@
+[Unit]
+Description=Teria: Bootprotokolle 90 Sekunden nach dem Start sichern
+
+[Timer]
+OnBootSec=90s
+
+[Install]
+WantedBy=timers.target
