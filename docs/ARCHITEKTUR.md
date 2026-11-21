@@ -27,6 +27,6 @@
 | `docs/` | Analyse, Architektur, Sicherheit |
 | `release-notes/` | Texte für GitHub-Releases |
 
-Versionen: SemVer unter 1.0 (`0.MINOR.PATCH`). Vor jeder neuen Minor-Version gibt es Vorabversionen
-(`v0.2.0-rc.1`, …). Release-Titel: „Teria v0.2.1“. Die CI baut bei jedem Tag `v*` die Assets und
+Versionen: SemVer unter 1.0 (`0.MINOR.PATCH`). Release-Candidates gibt es nur vor einer
+Major-Version (`v1.0.0-rc.1`, …), nie vor Minor/Patch. Release-Titel: „Teria v0.2.1“. Die CI baut bei jedem Tag `v*` die Assets und
 hängt sie ans Release; Tags mit `-` werden als Vorabversion markiert.

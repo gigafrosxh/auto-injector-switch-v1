@@ -2,7 +2,7 @@
 
 Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach SemVer (unter 1.0).
 
-## [0.1.0-rc.1] - 2026-11-21
+## [0.1.0] - 2026-11-21
 
 ### Neu
 - Paket `teria-base` mit os-release-Branding (#2)
