@@ -39,6 +39,11 @@ jobs:
           shellcheck tests/setup-from-sd.sh
           bash tests/setup-from-sd.sh
 
+      - name: APT-Pin für L4T (#45)
+        run: |
+          shellcheck tests/check_apt_pin.sh
+          docker run --rm -v "$PWD:/src:ro" debian:trixie bash /src/tests/check_apt_pin.sh
+
       - name: Version aus Tag
         id: v
         run: |
