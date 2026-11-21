@@ -6,6 +6,7 @@
   teria-shell --show      laufende Oberflaeche nach vorne holen (z. B. aus dem Desktop-Modus)
 """
 import os
+import subprocess
 import sys
 import urllib.request
 
@@ -76,15 +77,29 @@ def main():
     with server.EVENTS_LOCK:
         server.EVENTS.append(q)
 
+    # Kommt die Oberflaeche zurueck nach vorn (Home-Taste, Fensterliste, Alt+Tab), endet der
+    # Desktop-Modus. Sonst liegen Leiste und Dock ueber der Vollbild-Shell (#49).
+    desktop = {"on": False}
+
+    def on_focus(*_):
+        if desktop["on"]:
+            desktop["on"] = False
+            subprocess.Popen(["/usr/lib/teria-shell/desktop-mode", "stop"], start_new_session=True)
+        return False
+
+    win.connect("focus-in-event", on_focus)
+
     def poll():
         try:
             while True:
                 kind, _ = q.get_nowait()
                 if kind == "hide":
+                    desktop["on"] = True
                     win.iconify()
                 elif kind == "quit":
                     Gtk.main_quit()
                 elif kind == "show":
+                    desktop["on"] = False
                     win.deiconify()
                     win.present()
         except queue.Empty:

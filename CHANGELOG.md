@@ -4,6 +4,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-11-21
+
+### Behoben
+- Wer aus dem Desktop-Modus per Home-Taste, Fensterliste oder Alt+Tab zur Teria-Oberfläche zurückkehrt, beendet den Desktop-Modus. Leiste und Dock verdecken die Oberfläche nicht mehr (#49).
+
 ## [0.4.0] - 2026-11-21
 
 ### Neu
