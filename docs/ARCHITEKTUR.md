@@ -40,3 +40,5 @@ Das Paket `teria-base` läuft auch weiterhin als Schicht in Switchroot Ubuntu (d
 Versionen: SemVer unter 1.0 (`0.MINOR.PATCH`). Release-Candidates gibt es nur vor einer
 Major-Version (`v1.0.0-rc.1`, …), nie vor Minor/Patch. Release-Titel: „Teria v0.2.1“. Die CI baut bei jedem Tag `v*` die Assets und
 hängt sie ans Release; Tags mit `-` werden als Vorabversion markiert.
+
+Die [Kompatibilitätsprüfung für L4T unter trixie](L4T-TRIXIE.md) nennt Paketversionen, benötigte APT-Pins und offene Gerätetests.
