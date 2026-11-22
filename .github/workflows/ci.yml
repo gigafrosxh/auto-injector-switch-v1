@@ -69,6 +69,7 @@ jobs:
             apt-get -qq update >/dev/null
             apt-get -qq install -y /dist/teria-base_*_all.deb >/dev/null
             . /etc/os-release; echo "$PRETTY_NAME"; [ "$ID" = teria ]; [ "$ID_LIKE" = debian ]
+            bash /tests/check_ssh_guard.sh
             apt-get -qq install -y --no-install-recommends /dist/teria-shell_*_all.deb >/dev/null
             cd /usr/lib/teria-shell && TERIA_SHELL_MOCK=1 python3 -c "import server,urllib.request,json; server.serve(8790); assert json.load(urllib.request.urlopen(\"http://127.0.0.1:8790/api/state\"))[\"battery\"][\"capacity\"]==78; print(\"teria-shell ok\")"
             command -v gtk-launch

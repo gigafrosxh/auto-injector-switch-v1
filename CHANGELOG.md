@@ -4,6 +4,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.4.6] - 2026-11-22
+
+### Sicherheit
+- SSH startet erst, wenn kein Konto mehr ein Standardpasswort wie `teria` hat. Vorher war die Switch mit dem bekannten Passwort und sudo-Rechten über WLAN und USB erreichbar (#65).
+
 ## [0.4.5] - 2026-11-22
 
 ### Behoben
