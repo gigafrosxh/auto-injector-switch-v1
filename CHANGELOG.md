@@ -4,6 +4,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-11-22
+
+### Behoben
+- Das Schnellmenü zeigt den eMMC-Schutz nur noch als aktiv, wenn er es wirklich ist. Beim Ausschalten und Neustarten ist „Abbrechen“ vorgewählt. App-Dateinamen mit Sonderzeichen werden ignoriert, damit sie keinen Code in der Oberfläche ausführen können (#67).
+
 ## [0.5.1] - 2026-11-22
 
 ### Behoben

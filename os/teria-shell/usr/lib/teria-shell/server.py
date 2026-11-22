@@ -251,7 +251,8 @@ def list_apps():
     for d in DESKTOP_DIRS:
         for f in sorted(glob.glob(os.path.join(d, "*.desktop"))):
             aid = os.path.basename(f)
-            if aid in seen or aid in HIDDEN:
+            # Nur harmlose IDs: sie landen in onclick-Attributen der Oberflaeche (#67)
+            if not re.fullmatch(r"[\w.\-+]+\.desktop", aid, re.ASCII) or aid in seen or aid in HIDDEN:
                 continue
             cp = configparser.RawConfigParser(interpolation=None, strict=False)
             try:
