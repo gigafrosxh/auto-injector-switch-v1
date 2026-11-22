@@ -70,7 +70,16 @@ function statusBar(extra = "") {
 function hints(...h) { return `<div class="hints">${h.map(([k, t]) => `<span><i class="k">${k}</i>${t}</span>`).join("")}</div>`; }
 function clock() { return new Date().toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" }); }
 function dateStr() { return new Date().toLocaleDateString("de-AT", { weekday: "long", day: "numeric", month: "long" }); }
-function toast(t) { const el = $("#toast"); el.textContent = t; el.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("on"), 2600); }
+// Glasflaechen: vorberechneten Weichzeichner genau unter die Flaeche legen (keine GPU noetig)
+const GLASS = ".glass,.card,.qt,.hints,.status .r,.tabs,.chip,.ghost,.seg,.side .navrow.cur,#toast,.appicon.sys";
+function glassify(root = $("#stage")) {
+  const sr = $("#stage").getBoundingClientRect(), s = sr.width / 1280 || 1;
+  for (const el of $$(GLASS, root)) {
+    const r = el.getBoundingClientRect();
+    el.style.backgroundPosition = `0 0, ${-(r.left - sr.left) / s}px ${-(r.top - sr.top) / s}px`;
+  }
+}
+function toast(t) { const el = $("#toast"); el.textContent = t; el.classList.add("on"); glassify(el.parentNode); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("on"), 2600); }
 
 // ---------------------------------------------------------------- Navigation
 const NAV = { view: "home", stack: [], homeTab: "spiele", libFilter: "alle", storeTab: "spiele", app: null, setPage: "energie" };
@@ -111,6 +120,7 @@ function back() {
 function show(view, push = true) {
   if (push && NAV.view !== view) NAV.stack.push(NAV.view);
   NAV.view = view;
+  $("#stage").classList.toggle("deep", view !== "home");
   $$(".view").forEach(v => v.classList.toggle("on", v.id === "v-" + view));
   render();
 }
@@ -120,6 +130,7 @@ function render(keepSel = true) {
   const items = focusables(scope());
   const again = prevKey && items.find(e => e.dataset.key === prevKey);
   sel = null; select(again || items.find(e => e.dataset.first) || items[0], false);
+  glassify();
 }
 const HANDLERS = {};
 function nav(attrs, key, extra = "") { return `class="nav ${attrs}" data-key="${esc(key)}" ${extra}`; }
@@ -133,7 +144,7 @@ const RENDER = {
     const sys = [["Bibliothek", "grid", GRAD.apps, "go:library"], ["Store", "bag", "linear-gradient(135deg,#3ee0c5,#1f8f9c)", "go:store"], ["Desktop", "desk", "linear-gradient(135deg,#8a5cf6,#5b33c9)", "desktop"], ["Einstellungen", "gear", "linear-gradient(135deg,#5b6280,#353a52)", "go:settings"]];
     heroApp = heroApp && list.includes(heroApp) ? heroApp : list[0] || null;
     const tiles = list.slice(0, 6).map((a, i) => `<div ${nav("appicon", "app:" + a.id, `data-onsel="hero" data-app="${esc(a.id)}" onclick="launch('${esc(a.id)}')" ${a === heroApp ? "data-first=1" : ""} style="width:104px;height:104px;${tileStyle(a)}"`)}>${artOf(a) ? "" : iconHtml(a, 40)}</div>`).join("");
-    const sysT = sys.map(([n, g, bg, act]) => `<div ${nav("appicon", "sys:" + n, `data-onsel="hero" data-sys="${n}" onclick="doAct('${act}')" style="width:104px;height:104px;background:${bg}"`)}>${ic(g, 40)}</div>`).join("");
+    const sysT = sys.map(([n, g, bg, act]) => `<div ${nav("appicon sys", "sys:" + n, `data-onsel="hero" data-sys="${n}" onclick="doAct('${act}')" style="width:104px;height:104px"`)}>${ic(g, 40)}</div>`).join("");
     const recent = APPS.filter(a => a !== heroApp && a.recent != null).slice(0, 3);
     $("#v-home").innerHTML = `<div class="bg" id="homebg" style="background-image:url(art/home.jpg)"></div>
     <div class="shade" style="background:linear-gradient(90deg,rgba(6,7,18,.92) 0%,rgba(6,7,18,.55) 45%,rgba(6,7,18,0) 75%),linear-gradient(0deg,rgba(6,7,18,.95) 0%,rgba(6,7,18,0) 45%)"></div>
@@ -141,10 +152,10 @@ const RENDER = {
     <div id="selname" style="position:absolute;top:92px;left:40px;font-size:15px;color:var(--ink2);font-weight:500"></div>
     <div id="tiles">${tiles}${list.length ? '<div class="sep"></div>' : ""}${sysT}</div>
     <div id="hero"></div>
-    <div style="position:absolute;left:40px;right:40px;bottom:62px;display:flex;gap:16px;align-items:flex-end">
+    <div class="homefoot" style="position:absolute;left:40px;right:40px;bottom:62px;display:flex;gap:16px;align-items:flex-end">
       <div>${recent.length ? `<div class="lbl" style="margin-bottom:10px">Zuletzt verwendet</div><div id="recent">${recent.map(a => `<div ${nav("mini", "rec:" + a.id, `onclick="launch('${esc(a.id)}')"`)}><div class="art" style="${tileStyle(a)}">${artOf(a) ? "" : iconHtml(a, 36)}</div><div>${esc(a.name)}</div></div>`).join("")}</div>` : ""}</div>
       <div style="flex:1"></div>
-      <div class="card" style="width:330px;padding:18px 20px;display:flex;gap:14px;align-items:center"><div class="appicon" style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#3ee0c5,#1f8f9c)">${ic("shield", 24)}</div><div><div style="font-weight:500">Teria ${esc(S.version)}</div><div style="color:var(--ink2);font-size:13px;margin-top:2px">eMMC ${esc(S.emmc)} · ${S.storage?.free_gb ?? "?"} GB frei</div></div></div>
+      <div class="card" style="width:330px;padding:18px 20px;display:flex;gap:14px;align-items:center"><div class="appicon sys" style="width:52px;height:52px;border-radius:16px">${ic("shield", 24)}</div><div><div style="font-weight:500">Teria ${esc(S.version)}</div><div style="color:var(--ink2);font-size:13px;margin-top:2px">eMMC ${esc(S.emmc)} · ${S.storage?.free_gb ?? "?"} GB frei</div></div></div>
     </div>
     ${hints(["A", "Starten"], ["L R", "Bereich"], ["+", "Schnellmenü"])}`;
     drawHero();
@@ -214,6 +225,7 @@ function drawHero(sysName) {
   const h = $("#hero"); if (!h) return;
   $("#selname").textContent = sysName || heroApp?.name || "";
   $$("#tiles .appicon").forEach(t => { const big = t === sel; t.style.width = t.style.height = big ? "132px" : "104px"; });
+  glassify($("#tiles"));
   if (sysName) {
     const d = { Bibliothek: "Alles Installierte an einem Ort.", Store: "Spiele und Apps für die Switch.", Desktop: "Klassischer Desktop mit Dock, für die Arbeit im Dock.", Einstellungen: "WLAN, Bluetooth, Energie, Sicherheit." }[sysName];
     h.innerHTML = `<div class="lbl">System</div><h1>${esc(sysName)}</h1><p>${d}</p>`;
@@ -326,7 +338,7 @@ function toggleQuick(on = !$("#quick").classList.contains("on")) {
     <div style="display:flex;gap:10px">${[["hekate", "reboot", "Neustart in Hekate"], ["suspend", "moon", "Ruhezustand"], ["poweroff", "power", "Aus"]].map(([v, g, t]) => `<span ${nav("chip", "qpw:" + v, `onclick="power('${v}')"`)}>${ic(g, 16)} ${t}</span>`).join("")}</div>
    </div>
   </div>${hints(["B", "Schließen"], ["+", "Schnellmenü"])}`;
-  q.classList.add("on"); $("#stage").classList.add("dim");
+  q.classList.add("on"); $("#stage").classList.add("dim"); glassify(q);
   const keep = sel?.dataset.key, items = focusables(q);
   sel = null; select(items.find(e => e.dataset.key === keep) || items[0], false);
 }
@@ -344,7 +356,7 @@ function libFilter(k) { NAV.libFilter = k; render(); }
 function storeTab(k) { NAV.storeTab = k; render(false); }
 function openApp(pkg) { NAV.app = pkg; show("app"); }
 async function install(pkg) { const r = await api("/api/install", { pkg }); if (r.ok) { JOBS[r.job] = { pkg, status: "laeuft", progress: 0 }; render(); toast("Installation gestartet"); } else toast("Nicht erlaubt"); }
-function dialog(html) { const d = $("#dialog"); d.innerHTML = `<div class="card">${html}</div>`; d.classList.add("on"); sel = null; const items = focusables(d); select(items.find(e => e.dataset.first) || items[0], false); }
+function dialog(html) { const d = $("#dialog"); d.innerHTML = `<div class="card">${html}</div>`; d.classList.add("on"); glassify(d); sel = null; const items = focusables(d); select(items.find(e => e.dataset.first) || items[0], false); }
 function closeDialog() { $("#dialog").classList.remove("on"); $("#dialog").innerHTML = ""; if ($("#quick").classList.contains("on")) toggleQuick(true); else render(); }
 async function refresh() { S = await api("/api/state"); if (!$("#dialog").classList.contains("on")) { if ($("#quick").classList.contains("on")) toggleQuick(true); else render(); } }
 
