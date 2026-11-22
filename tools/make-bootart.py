@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Erzeugt das Teria-Bootlogo (720x1280, um 90 Grad gedreht wie von Hekate erwartet)
+"""Erzeugt das Teria-Bootlogo (720x1280, um 90 Grad gegen den Uhrzeigersinn gedreht, wie Hekate es auf dem Switch-Panel erwartet)
 und das Menue-Icon (192x192) als 32-Bit-BMP. Nur Pillow, keine Schriftdateien:
 der Schriftzug ist geometrisch gezeichnet.
 
@@ -80,7 +80,7 @@ def bootlogo():
     letters(d, (W - width) // 2, 450, s, INK)
     d.rectangle([W // 2 - 40, 545, W // 2 + 40, 549], fill=ACCENT)
     # Hekate erwartet das Bild hochkant (Panel ist physisch hochkant verbaut)
-    return img.convert("RGB").rotate(-90, expand=True)
+    return img.convert("RGB").rotate(90, expand=True)
 
 def icon():
     S = 192
