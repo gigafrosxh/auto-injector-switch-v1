@@ -4,6 +4,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.4.5] - 2026-11-22
+
+### Behoben
+- In der Teria-Oberfläche sind Joy-Cons und Pro Controller nicht mehr zusätzlich Maus und Tastatur. Es erscheint kein Zeiger mehr, Tasten lösen nicht mehr doppelt aus, und es öffnen sich keine Apps mehr durch versehentliche Klicks. Im Desktop-Modus bleibt die Maus-Belegung aktiv (#61).
+
 ## [0.4.4] - 2026-11-22
 
 ### Behoben

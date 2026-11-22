@@ -36,6 +36,17 @@ JOBS = {}            # Installationsauftraege
 
 
 HIDDEN_SHELL = {"on": False}   # Shell verdeckt (App oder Desktop vorn): Controller nicht an die Oberflaeche
+DESKTOP = {"on": False}        # Desktop-Modus: nur dann duerfen Joy-Cons in X Maus und Tastatur sein (#61)
+
+
+def joy_off_later(delay=2.0):
+    """X-Belegung der Controller (switch-joystick-mouse) ausserhalb des Desktop-Modus abschalten."""
+    def run():
+        time.sleep(delay)
+        if not DESKTOP["on"]:
+            subprocess.run(["/usr/lib/teria-shell/desktop-mode", "joy-off"], timeout=15,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    threading.Thread(target=run, daemon=True).start()
 
 
 def emit(kind, data):
@@ -439,9 +450,11 @@ def act(action, body):
             return True, None
     if action == "mode":
         if v == "desktop":
+            DESKTOP["on"] = True
             subprocess.Popen(["/usr/lib/teria-shell/desktop-mode", "start"], start_new_session=True)
             emit("hide", {})
         else:
+            DESKTOP["on"] = False
             subprocess.Popen(["/usr/lib/teria-shell/desktop-mode", "stop"], start_new_session=True)
             emit("show", {})
         return True, None
@@ -507,6 +520,7 @@ def gamepad_thread():
                 continue
             if e.BTN_SOUTH in caps or e.BTN_EAST in caps:
                 watched[path] = dev
+                joy_off_later()     # X meldet den neuen Controller kurz nach evdev an
                 threading.Thread(target=read_pad, args=(dev, keymap, e, watched, path), daemon=True).start()
         time.sleep(3)
 
