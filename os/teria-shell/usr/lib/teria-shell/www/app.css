@@ -102,3 +102,78 @@ svg.ic{display:block;flex:none}
 #toast{position:absolute;left:50%;bottom:70px;transform:translateX(-50%) translateY(20px);opacity:0;z-index:70;padding:12px 20px;border-radius:999px;background:rgba(22,26,48,.95);border:1px solid var(--line);font-size:15px;transition:.2s;pointer-events:none}
 #toast.on{opacity:1;transform:translateX(-50%)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ===================================================================================
+   Design 0.5 „Glas“: Liquid Glass trifft PS5 (#59).
+   Glas ohne GPU: Glasflächen zeigen einen vorberechneten, weichgezeichneten Hintergrund
+   (art/home-glass.jpg, erzeugt mit tools/blur-image.py). app.js setzt die Position so, dass
+   er genau unter der Fläche liegt (glassify). Kein backdrop-filter, keine weichen Schatten.
+   =================================================================================== */
+:root{--teal:#8fd3ff;--teal2:#4aa8ff;--accent:#8fd3ff;--ink:#f4f6fb;--ink2:rgba(235,240,255,.68);--ink3:rgba(235,240,255,.42);
+--line:rgba(255,255,255,.16);--rim:rgba(255,255,255,.34);--tint:rgba(255,255,255,.10);--tint2:rgba(255,255,255,.03)}
+#backdrop{position:absolute;inset:0;background:url(art/home.jpg) center/cover}
+#backdrop::after{content:"";position:absolute;inset:0;background:rgba(4,6,16,.30)}
+#stage.deep #backdrop::after{background:rgba(4,6,16,.62)}
+.view .bg,.view .shade{display:none}
+#v-home .shade{display:block}
+.view{background:transparent}
+/* Glas */
+.glass,.card,.qt,.hints,.status .r,.tabs,.chip,.ghost,.seg,.side .navrow.cur,#toast,.appicon.sys{
+  background-image:linear-gradient(160deg,var(--tint),var(--tint2) 60%),url(art/home-glass.jpg);
+  background-size:100% 100%,1280px 720px;background-repeat:no-repeat;background-color:rgba(40,48,80,.35);
+  border:1px solid var(--line);box-shadow:inset 0 1px 0 var(--rim)}
+.card{border-radius:26px}
+.qt{border-radius:22px}
+.qt.on{background-image:linear-gradient(160deg,rgba(143,211,255,.34),rgba(143,211,255,.12)),url(art/home-glass.jpg);border-color:rgba(143,211,255,.55)}
+/* Statusleiste: Uhr und Symbole als Glaskapsel, Bereiche als Glas-Segmente */
+.status{top:18px}
+.status .r{padding:7px 8px 7px 16px;border-radius:999px;gap:14px}
+.pill{background:rgba(255,255,255,.12);border:0;padding:4px 10px}
+.pill.chg{background:rgba(143,211,255,.22)}
+.time{padding-right:8px}
+.tabs{margin-left:26px;padding:4px;border-radius:999px;gap:2px;font-size:16px}
+.tab{padding:7px 18px;border-radius:999px;color:var(--ink2)}
+.tab.on{background:rgba(255,255,255,.92);color:#0b1020}
+.tab.on::after{display:none}
+.av{background:linear-gradient(135deg,#bfe6ff,#6aa9ff);box-shadow:0 0 0 2px rgba(255,255,255,.5)}
+/* Kacheln im PS5-Stil: Spiele als Bild, System als Glas */
+#tiles{top:96px;gap:14px}
+.appicon{border-radius:22px}
+.appicon.sys{color:#fff}
+.nav.sel{outline:3px solid #fff;outline-offset:4px;box-shadow:0 0 0 9px rgba(143,211,255,.20)}
+#selname{top:236px!important;font-size:13px!important;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)!important}
+#hero{top:262px}
+#hero h1{font-size:54px;letter-spacing:-.02em}
+.lbl{color:var(--ink3);letter-spacing:.16em}
+/* Knöpfe */
+.cta{height:52px;padding:0 30px;background:#fff;color:#0b1020;font-weight:700}
+.cta.teal{background:var(--accent);color:#06203a}
+.ghost{background-color:transparent}
+.chip{background-color:transparent;border-radius:999px}
+.chip.on{background:rgba(255,255,255,.92);color:#0b1020;box-shadow:none}
+.seg{border-radius:18px;padding:5px}
+.seg>div{border-radius:13px}
+.seg>div.on{background:rgba(255,255,255,.92);color:#0b1020}
+.tog.on{background:var(--accent)}.tog.on::after{background:#06203a}
+.bar{background:rgba(255,255,255,.16)}.bar i{background:#fff}
+/* Hinweise unten als Glaskapsel */
+.hints{bottom:18px;padding:8px 18px 8px 10px;border-radius:999px;gap:18px;color:var(--ink)}
+.k{background:rgba(255,255,255,.9);color:#0b1020;border:0}
+/* Seitenleiste */
+.navrow{border-radius:14px}
+.side .navrow.cur{color:var(--ink)}
+.list .nav.sel,.navrow.sel{background:rgba(255,255,255,.16)!important;outline:2px solid rgba(255,255,255,.85);outline-offset:-2px}
+.srow{border-bottom-color:rgba(255,255,255,.10)}
+/* Bibliothek und Store: Karten mit Glasrand */
+.cell .art,.mini .art{border-radius:20px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.badge{background:rgba(255,255,255,.9);color:#0b1020}
+/* Schnellmenü und Dialog: heller Schleier statt Schwarz */
+#quick .veil{background:rgba(4,6,16,.45)}
+#stage.dim .view.on{opacity:.25}
+#dialog{background:rgba(4,6,16,.5)}
+#dialog .card{border-radius:30px}
+#toast{color:var(--ink)}
+#selname{display:none}
+#hero{top:250px}
+#hero h1{font-size:60px;margin:8px 0 6px}
+#v-home .homefoot{bottom:84px!important}

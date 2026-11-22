@@ -4,6 +4,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-22
+
+### Neu
+- Neues Design „Glas“: Liquid Glass trifft PS5. Statusleiste, Bereichsauswahl, Systemkacheln, Karten, Schnellmenü und Tastenhinweise sind Glasflächen, Auswahl und Hauptknopf im PS5-Stil. Der Glas-Effekt nutzt vorberechnete Weichzeichner und bleibt ohne GPU schnell (75 ms pro Schritt auf der Switch) (#59).
+
 ## [0.4.6] - 2026-11-22
 
 ### Sicherheit
