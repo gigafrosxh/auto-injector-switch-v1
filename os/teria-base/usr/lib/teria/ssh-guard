@@ -1,0 +1,45 @@
+#!/usr/bin/python3 -I
+"""SSH erst freigeben, wenn kein Konto mehr ein Standardpasswort hat (#65).
+
+Das Image liefert das Konto teria mit dem Passwort teria und sudo-Rechten aus. Solange ein
+lokales Konto noch ein bekanntes Passwort hat, startet sshd nicht (ExecCondition, Exit 1 =
+uebersprungen). Neues Passwort setzen (Einrichtungsassistent, teria-setup.txt oder passwd),
+danach startet SSH beim naechsten Boot oder mit: sudo systemctl start ssh
+"""
+import ctypes
+import ctypes.util
+import pwd
+import sys
+
+KNOWN = ("teria", "12345678", "switch", "password")
+
+
+def main():
+    lib = ctypes.CDLL(ctypes.util.find_library("crypt") or "libcrypt.so.1")
+    lib.crypt.restype = ctypes.c_char_p
+    lib.crypt.argtypes = (ctypes.c_char_p, ctypes.c_char_p)
+    weak = []
+    with open("/etc/shadow") as f:
+        for line in f:
+            name, hashed = line.split(":")[:2]
+            try:
+                if pwd.getpwnam(name).pw_uid < 1000:
+                    continue
+            except KeyError:
+                continue
+            if not hashed or hashed[0] in "!*":
+                continue
+            for pw in KNOWN + (name,):
+                out = lib.crypt(pw.encode(), hashed.encode())
+                if out and out.decode() == hashed:
+                    weak.append(name)
+                    break
+    if weak:
+        print("SSH bleibt aus: Standardpasswort bei " + ", ".join(weak) + ". Erst ein eigenes Passwort setzen.",
+              file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

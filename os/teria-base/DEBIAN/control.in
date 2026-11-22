@@ -2,7 +2,7 @@ Package: teria-base
 Version: @VERSION@
 Architecture: all
 Maintainer: gigafrosxh <gigafrosxh@users.noreply.github.com>
-Depends: bash, coreutils, util-linux, systemd, udev, gawk | mawk
+Depends: bash, coreutils, util-linux, systemd, udev, gawk | mawk, python3, libcrypt1, passwd
 Recommends: switch-bsp
 Section: admin
 Priority: optional
