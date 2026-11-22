@@ -298,7 +298,7 @@ async function step(k, d) { const v = k === "volume" ? S.volume.value : S.bright
 async function setPerf(p) { const r = await api("/api/action/perf", { value: p }); if (r.ok) { S.perf = p; render(); toast("Leistungsprofil: " + { eco: "Eco", ausgewogen: "Ausgewogen", max: "Max" }[p]); } else toast("Profil nicht geändert"); }
 async function power(v) {
   const t = { hekate: "Jetzt in Hekate neu starten?", reboot: "Teria neu starten?", poweroff: "Switch ausschalten?", suspend: "Ruhezustand?" }[v];
-  dialog(`<div style="font-size:22px;font-weight:500">${t}</div><div style="display:flex;gap:12px;justify-content:flex-end"><span ${nav("chip", "no", `onclick="closeDialog()"`)}>Abbrechen</span><span ${nav("chip on", "yes", `data-first=1 onclick="closeDialog();api('/api/action/power',{value:'${v}'})"`)}>Ja</span></div>`);
+  dialog(`<div style="font-size:22px;font-weight:500">${t}</div><div style="display:flex;gap:12px;justify-content:flex-end"><span ${nav("chip", "no", `data-first=1 onclick="closeDialog()"`)}>Abbrechen</span><span ${nav("chip on", "yes", `onclick="closeDialog();api('/api/action/power',{value:'${v}'})"`)}>Ja</span></div>`);
 }
 function connectWifi(ssid, secure) {
   if (!secure) return doConnect(ssid, "");
@@ -328,7 +328,7 @@ function toggleQuick(on = !$("#quick").classList.contains("on")) {
     ${qt("qbt", "bt", "Bluetooth", S.bluetooth.on ? (S.bluetooth.connected.length ? S.bluetooth.connected.length + " verbunden" : "An") : "Aus", S.bluetooth.on, "toggle('bluetooth').then(()=>toggleQuick(true))")}
     ${qt("qdesk", "desk", "Desktop-Modus", "Mit Dock und Fenstern", false, "doAct('desktop')")}
     ${qt("qdock", "tv", "Dock", S.docked ? "Angedockt" : "Handheld", S.docked, "")}
-    ${qt("qemmc", "shield", "eMMC-Schutz", esc(S.emmc), true, "toggleQuick(false);show('settings');setPage('sicherheit')")}
+    ${qt("qemmc", "shield", "eMMC-Schutz", esc(S.emmc), /gesch|nicht sichtbar/.test(S.emmc || ""), "toggleQuick(false);show('settings');setPage('sicherheit')")}
     ${qt("qset", "gear", "Einstellungen", "Alles weitere", false, "toggleQuick(false);show('settings')")}
    </div>
    <div class="card" style="padding:22px;display:flex;flex-direction:column;gap:18px">
