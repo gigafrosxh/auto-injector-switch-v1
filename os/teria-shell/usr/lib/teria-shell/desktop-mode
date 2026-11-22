@@ -1,13 +1,30 @@
 #!/bin/sh
 # Desktop-Modus innerhalb der Teria-Sitzung: Xfce-Desktop und Dock ein-/ausblenden.
+#
+# Joy-Cons und Pro Controller: Das L4T-Paket switch-joystick-mouse macht sie in X zu Maus und
+# Tastatur (Stick = Zeiger, ZR = Linksklick, A = Return, Steuerkreuz = Pfeiltasten). In der
+# Teria-Oberflaeche liest teria-shell die Controller selbst ueber evdev; die X-Belegung wuerde
+# jeden Druck doppelt ausloesen, den Zeiger einblenden und Klicks an zufaellige Stellen setzen
+# (#61). Deshalb ist sie nur im Desktop-Modus aktiv.
+joy() { # joy enable|disable
+    command -v xinput >/dev/null 2>&1 || return 0
+    for id in $(xinput list --id-only 2>/dev/null); do
+        case "$(xinput list --name-only "$id" 2>/dev/null)" in
+            *"Nintendo Switch"*|*"Pro Controller"*|*"Joy-Con"*) xinput "$1" "$id" 2>/dev/null ;;
+        esac
+    done
+}
 case "$1" in
     start)
+        joy enable
         pgrep -u "$(id -u)" -x xfdesktop >/dev/null || xfdesktop --disable-wm-check >/dev/null 2>&1 &
         pgrep -u "$(id -u)" -x xfce4-panel >/dev/null || xfce4-panel --disable-wm-check >/dev/null 2>&1 &
         ;;
     stop)
+        joy disable
         xfce4-panel --quit 2>/dev/null
         xfdesktop --quit 2>/dev/null
         ;;
-    *) echo "Aufruf: desktop-mode start|stop"; exit 2 ;;
+    joy-off) joy disable ;;
+    *) echo "Aufruf: desktop-mode start|stop|joy-off"; exit 2 ;;
 esac
