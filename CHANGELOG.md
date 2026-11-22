@@ -4,6 +4,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.4.4] - 2026-11-22
+
+### Behoben
+- Die Oberfläche reagiert etwa siebenmal schneller: Ohne GPU-Beschleunigung zeichnet WebKit weiche Schatten, Weichzeichner und Größen-Animationen bei jedem Schritt neu. Diese Effekte sind entfernt, ein Schritt in der Kachelreihe braucht auf der Switch 63 statt 449 ms (#57).
+
 ## [0.4.3] - 2026-11-21
 
 ### Behoben

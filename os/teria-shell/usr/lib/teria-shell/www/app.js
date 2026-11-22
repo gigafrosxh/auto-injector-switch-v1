@@ -175,7 +175,7 @@ const RENDER = {
   app() {
     const i = STORE.find(x => x.pkg === NAV.app); if (!i) return;
     const job = Object.values(JOBS).find(j => j.pkg === i.pkg && j.status === "laeuft");
-    $("#v-app").innerHTML = `<div class="bg" style="background-image:url(art/${esc(i.art)}.jpg);filter:blur(18px) saturate(1.3);transform:scale(1.1)"></div>
+    $("#v-app").innerHTML = `<div class="bg" style="background-image:url(art/${esc(i.art)}.jpg);opacity:.35"></div>
     <div class="shade" style="background:linear-gradient(0deg,#0b0d1d 40%,rgba(11,13,29,.55) 75%,rgba(11,13,29,.25))"></div>
     ${statusBar()}
     <div style="position:absolute;left:40px;top:150px;display:flex;gap:26px;align-items:flex-end">

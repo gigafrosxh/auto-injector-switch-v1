@@ -1,3 +1,5 @@
+/* Leistung (#57): ohne GPU kosten weiche Schatten, filter und Layout-Animationen pro Bild
+   sehr viel. Auf beweglichen oder neu gerenderten Elementen nur harte Kanten und Farbflächen. */
 /* Teria-Shell. Bühne 1280x720, wird per Skript auf das Fenster skaliert (720p Handheld, 1080p Dock). */
 @font-face{font-family:"Ubuntu";src:url(fonts/Ubuntu-Light.ttf);font-weight:300}
 @font-face{font-family:"Ubuntu";src:url(fonts/Ubuntu-Regular.ttf);font-weight:400}
@@ -32,10 +34,10 @@ svg.ic{display:block;flex:none}
 .hints span{display:flex;align-items:center;gap:8px}
 .k{display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.14);color:var(--ink);font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,.25);font-style:normal;padding:0 4px}
 /* Kacheln */
-.appicon{border-radius:24px;display:grid;place-items:center;color:#fff;position:relative;box-shadow:0 10px 30px rgba(0,0,0,.35);overflow:hidden;background-size:cover;background-position:center;flex:none;transition:width .18s,height .18s,transform .18s}
-.appicon img{width:56%;height:56%;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.35))}
+.appicon{border-radius:24px;display:grid;place-items:center;color:#fff;position:relative;overflow:hidden;background-size:cover;background-position:center;flex:none}
+.appicon img{width:56%;height:56%;object-fit:contain}
 .nav{outline:none;cursor:pointer}
-.nav.sel{outline:3px solid #fff;outline-offset:5px;box-shadow:0 0 0 10px rgba(62,224,197,.22),0 18px 50px rgba(0,0,0,.5)}
+.nav.sel{outline:3px solid #fff;outline-offset:5px;box-shadow:0 0 0 10px rgba(62,224,197,.22)}
 .row-sel .nav.sel{outline-offset:5px}
 .list .nav.sel,.navrow.sel{outline:none;box-shadow:none;background:rgba(62,224,197,.14)!important;}
 .cta{display:inline-flex;align-items:center;gap:10px;height:48px;padding:0 26px;border-radius:999px;background:var(--ink);color:#0a0d1c;font-weight:700;font-size:17px;border:0}
@@ -53,13 +55,13 @@ svg.ic{display:block;flex:none}
 .bar{height:8px;border-radius:8px;background:rgba(255,255,255,.12)}.bar i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,var(--teal2),var(--teal))}
 .empty{color:var(--ink2);font-size:16px;line-height:1.5}
 /* Startbildschirm */
-#tiles{position:absolute;top:122px;left:40px;right:0;display:flex;gap:18px;align-items:center;transition:transform .2s}
+#tiles{position:absolute;top:122px;left:40px;right:0;display:flex;gap:18px;align-items:center}
 #tiles .sep{width:1px;height:70px;background:var(--line);margin:0 6px;flex:none}
 #hero{position:absolute;top:278px;left:40px;width:600px}
 #hero h1{font-size:48px;font-weight:700;letter-spacing:-.01em;margin:6px 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #hero p{color:var(--ink2);font-size:17px;line-height:1.5;margin:0}
 #recent{display:flex;gap:14px}
-.mini{width:170px}.mini .art{height:92px;border-radius:14px;background-size:cover;background-position:center;box-shadow:0 8px 24px rgba(0,0,0,.4);display:grid;place-items:center}
+.mini{width:170px}.mini .art{height:92px;border-radius:14px;background-size:cover;background-position:center;display:grid;place-items:center}
 .mini .art img{width:44px;height:44px;object-fit:contain}
 .cell .art img{width:64px;height:64px;object-fit:contain}
 .mini div:last-child{font-size:14px;margin-top:8px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -68,7 +70,7 @@ svg.ic{display:block;flex:none}
 #quick.on{display:block}
 #quick .veil{position:absolute;inset:0;background:rgba(5,6,15,.84)}
 #stage.dim .view.on .hints,#stage.dim .view.on .status{visibility:hidden}
-#stage.dim .view.on{filter:blur(10px) brightness(.45);transform:scale(1.03)}
+#stage.dim .view.on{opacity:.35}
 .qt{padding:16px;display:flex;flex-direction:column;gap:14px}
 .qt.on{background:rgba(62,224,197,.16);border-color:rgba(62,224,197,.45)}
 /* Seitenleisten */
@@ -76,7 +78,7 @@ svg.ic{display:block;flex:none}
 .navrow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;color:var(--ink2)}
 .navrow.cur{background:rgba(255,255,255,.10);color:var(--ink)}
 .grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:22px 18px}
-.cell .art{position:relative;height:118px;border-radius:14px;background-size:cover;background-position:center;box-shadow:0 8px 24px rgba(0,0,0,.35);display:grid;place-items:center}
+.cell .art{position:relative;height:118px;border-radius:14px;background-size:cover;background-position:center;display:grid;place-items:center}
 .cell .t{display:flex;justify-content:space-between;margin-top:9px;font-size:14px;gap:8px}
 .cell .t b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cell .c{color:var(--ink2);font-size:12px;margin-top:2px}
