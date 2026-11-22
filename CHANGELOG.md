@@ -4,6 +4,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-11-22
+
+### Behoben
+- Der Teria-Ladebildschirm von Hekate steht nicht mehr auf dem Kopf (#64).
+
 ## [0.5.0] - 2026-11-22
 
 ### Neu
