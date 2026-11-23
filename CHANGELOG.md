@@ -4,6 +4,9 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+### Behoben
+- `zramswap.service` schlägt beim Start nicht mehr fehl: Ist `/dev/zram0` schon vom L4T-BSP als Swap eingerichtet, wird der Dienst übersprungen (#77).
+
 ## [0.6.1] - 2026-11-23
 
 ### Behoben
