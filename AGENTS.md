@@ -28,6 +28,16 @@ Teria ist eine OS-Schicht (Paket `teria-base`) über Switchroot L4T Ubuntu Noble
 - *RCs nur vor einer Major-Version* (`1.0.0-rc.N`), nie vor Minor/Patch. Nach SemVer ist `x.0.0-rc.N` älter als `x.0.0`.
 - Release-Titel: `Teria v0.2.1`.
 
+## Ablauf für jede Version (Vorgabe des Nutzers, 23.11.2026)
+
+1. Version auf GitHub mergen und releasen (höchste Version ist „Latest“).
+2. Version auf der Switch installieren.
+3. Vollständig mit Codex und selbst testen, auch UX/UI am Gerät.
+4. Issues für gefundene Bugs anlegen und Milestones zuteilen.
+5. Neuen Patch erstellen.
+
+Nie eine Versionsnummer unter einer bereits gezeigten Version vergeben.
+
 ## Prioritäten nach jedem Release
 
 - P0 → `x.y.1`
