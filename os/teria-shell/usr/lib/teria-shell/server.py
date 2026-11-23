@@ -39,21 +39,43 @@ HIDDEN_SHELL = {"on": False}   # Shell verdeckt (App oder Desktop vorn): Control
 DESKTOP = {"on": False}        # Desktop-Modus: nur dann duerfen Joy-Cons in X Maus und Tastatur sein (#61)
 
 
-def joy_off_later(delay=2.0):
-    """X-Belegung der Controller (switch-joystick-mouse) ausserhalb des Desktop-Modus abschalten."""
-    def run():
-        time.sleep(delay)
-        if not DESKTOP["on"]:
-            subprocess.run(["/usr/lib/teria-shell/desktop-mode", "joy-off"], timeout=15,
+JOY_LOCK = threading.Lock()
+
+
+def apply_joy():
+    """X-Belegung der Controller (switch-joystick-mouse) auf den Sollzustand bringen (#61, #76).
+
+    Teria-Oberflaeche vorn: aus (sie liest die Controller selbst ueber evdev, sonst doppelte Eingaben,
+    Zeiger und Zufallsklicks). Desktop-Modus oder gestartete App vorn: an (Zeiger, Klick, Tasten).
+    Abgleich unter einer Sperre, damit sich Moduswechsel und Hotplug nicht ueberholen.
+    """
+    with JOY_LOCK:
+        want = "joy-on" if (DESKTOP["on"] or HIDDEN_SHELL["on"]) else "joy-off"
+        try:
+            subprocess.run(["/usr/lib/teria-shell/desktop-mode", want], timeout=15,
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except (OSError, subprocess.SubprocessError):
+            pass
+
+
+def sync_joy_later(delays=(2.0, 6.0)):
+    """Mehrfach abgleichen: X meldet neue Controller teils deutlich nach evdev an."""
+    def run():
+        last = 0.0
+        for d in delays:
+            time.sleep(max(0.0, d - last))
+            last = d
+            apply_joy()
     threading.Thread(target=run, daemon=True).start()
 
 
 def emit(kind, data):
     if kind in ("app", "hide"):
         HIDDEN_SHELL["on"] = True
+        sync_joy_later((0.5,))
     elif kind == "show":
         HIDDEN_SHELL["on"] = False
+        sync_joy_later((0.5,))
     elif kind == "pad" and HIDDEN_SHELL["on"]:
         return
     with EVENTS_LOCK:
@@ -541,7 +563,7 @@ def gamepad_thread():
                 continue
             if e.BTN_SOUTH in caps or e.BTN_EAST in caps:
                 watched[path] = dev
-                joy_off_later()     # X meldet den neuen Controller kurz nach evdev an
+                sync_joy_later()    # X meldet den neuen Controller erst nach evdev an
                 threading.Thread(target=read_pad, args=(dev, keymap, e, watched, path), daemon=True).start()
         time.sleep(3)
 

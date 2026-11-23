@@ -89,6 +89,7 @@ def main():
     def on_focus(*_):
         server.HIDDEN_SHELL["on"] = False
         server.DESKTOP["on"] = False
+        server.sync_joy_later((0.3,))
         if desktop["on"]:
             desktop["on"] = False
             subprocess.Popen(["/usr/lib/teria-shell/desktop-mode", "stop"], start_new_session=True)
