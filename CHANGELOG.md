@@ -4,6 +4,11 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-23
+
+### Neu
+- WLAN mit Benutzername und Passwort (WPA2/WPA3-Enterprise, z. B. Schule, Firma, eduroam): Der WLAN-Dialog fragt bei solchen Netzen zusätzlich den Benutzernamen ab und verbindet per PEAP/MSCHAPv2. Das Netz verbindet sich danach automatisch (#74).
+
 ## [0.5.2] - 2026-11-22
 
 ### Behoben
