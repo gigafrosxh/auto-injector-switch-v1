@@ -5,7 +5,8 @@
 # Tastatur (Stick = Zeiger, ZR = Linksklick, A = Return, Steuerkreuz = Pfeiltasten). In der
 # Teria-Oberflaeche liest teria-shell die Controller selbst ueber evdev; die X-Belegung wuerde
 # jeden Druck doppelt ausloesen, den Zeiger einblenden und Klicks an zufaellige Stellen setzen
-# (#61). Deshalb ist sie nur im Desktop-Modus aktiv.
+# (#61). Deshalb ist sie aus, solange die Teria-Oberflaeche vorn ist, und an im Desktop-Modus
+# und in gestarteten Apps (#76).
 joy() { # joy enable|disable
     command -v xinput >/dev/null 2>&1 || return 0
     for id in $(xinput list --id-only 2>/dev/null); do
@@ -25,6 +26,7 @@ case "$1" in
         xfce4-panel --quit 2>/dev/null
         xfdesktop --quit 2>/dev/null
         ;;
+    joy-on) joy enable ;;
     joy-off) joy disable ;;
-    *) echo "Aufruf: desktop-mode start|stop|joy-off"; exit 2 ;;
+    *) echo "Aufruf: desktop-mode start|stop|joy-on|joy-off"; exit 2 ;;
 esac

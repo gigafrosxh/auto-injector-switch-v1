@@ -4,6 +4,12 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-11-23
+
+### Behoben
+- Joy-Cons funktionieren in gestarteten Apps wieder als Maus und Tastatur; in der Teria-Oberfläche bleiben sie aus. Moduswechsel und neu verbundene Controller werden zuverlässig abgeglichen (#76).
+- Der SSH-Schutz greift beim Update sofort, nicht erst nach dem Neustart. Einrichtungsassistent und `teria-setup.txt` lehnen `teria` und den Benutzernamen als Passwort ab, damit SSH nicht überraschend aus bleibt (#76).
+
 ## [0.6.0] - 2026-11-23
 
 ### Neu

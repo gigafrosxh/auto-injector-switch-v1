@@ -42,6 +42,8 @@ def validate(values, uid):
     pw = values["password"]
     if not 8 <= len(pw) <= 256 or any(ord(c) < 32 for c in pw):
         raise ValueError("Passwort ungültig")
+    if pw in ("teria", name):
+        raise ValueError("Bitte ein eigenes Passwort wählen, nicht teria oder den Benutzernamen")
     if values["locale"] not in ("de_DE.UTF-8", "en_US.UTF-8"):
         raise ValueError("Sprache ungültig")
     if values["zone"] not in available_timezones():

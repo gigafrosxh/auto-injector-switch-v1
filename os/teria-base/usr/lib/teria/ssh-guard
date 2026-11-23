@@ -11,7 +11,7 @@ import ctypes.util
 import pwd
 import sys
 
-KNOWN = ("teria", "12345678", "switch", "password")
+KNOWN = ("teria",)   # Werkspasswort; dazu immer der eigene Benutzername
 
 
 def main():
@@ -23,7 +23,8 @@ def main():
         for line in f:
             name, hashed = line.split(":")[:2]
             try:
-                if pwd.getpwnam(name).pw_uid < 1000:
+                uid = pwd.getpwnam(name).pw_uid
+                if 0 < uid < 1000:      # Systemkonten ohne Anmeldung; root wird geprueft
                     continue
             except KeyError:
                 continue

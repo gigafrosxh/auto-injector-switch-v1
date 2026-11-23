@@ -82,7 +82,10 @@ if [ -n "$ssid" ]; then
         status=1
     fi
 fi
-if [ -n "$pw" ]; then
+if [ -n "$pw" ] && { [ "$pw" = teria ] || [ "$pw" = "$USER_NAME" ]; }; then
+    log "Passwort nicht uebernommen: teria oder Benutzername sind nicht erlaubt (SSH bliebe aus)"
+    status=1
+elif [ -n "$pw" ]; then
     if printf '%s:%s\n' "$USER_NAME" "$pw" | chpasswd && chage -d "$(date +%Y-%m-%d)" "$USER_NAME"; then
         clear_fields+=(-e 's/^\([[:space:]]*passwort[[:space:]]*=\).*/\1/')
         log "Passwort fuer $USER_NAME gesetzt"

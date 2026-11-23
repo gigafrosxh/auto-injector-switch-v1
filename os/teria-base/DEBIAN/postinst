@@ -12,6 +12,11 @@ case "$1" in
                 systemctl enable teria-emmc-guard.service >/dev/null 2>&1 || true
                 systemctl start teria-emmc-guard.service || true
                 udevadm control --reload-rules || true
+                # SSH-Schutz (#65): laeuft sshd noch mit Werkspasswort, sofort neu starten.
+                # Bestehende Sitzungen bleiben offen, neue Anmeldungen erst mit eigenem Passwort.
+                if ! /usr/lib/teria/ssh-guard 2>/dev/null; then
+                    systemctl try-restart ssh.service || true
+                fi
             else
                 systemctl enable teria-emmc-guard.service >/dev/null 2>&1 || true
             fi
