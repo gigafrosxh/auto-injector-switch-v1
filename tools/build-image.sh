@@ -103,7 +103,10 @@ in_root sh -c 'apt-get install -y --no-install-recommends /tmp/teria-base_*_all.
 rm -f "$ROOT"/tmp/teria-*.deb
 
 log "Systemeinstellungen"
-cp -a os/image/overlay/. "$ROOT/"
+# Overlay als root:root einspielen: cp -a wuerde die UID des Checkouts uebernehmen (in der CI 1001,
+# auf dem Geraet koennte das ein normales Konto sein) und diesem Konto /etc-Dateien ueberlassen (#70)
+cp -a --no-preserve=ownership os/image/overlay/. "$ROOT/"
+(cd os/image/overlay && find . -mindepth 1) | while IFS= read -r p; do chown -h root:root "$ROOT/${p#./}"; done
 sed -i 's/^# *de_DE.UTF-8/de_DE.UTF-8/; s/^# *en_US.UTF-8/en_US.UTF-8/' "$ROOT/etc/locale.gen"
 in_root locale-gen
 in_root update-locale LANG=de_DE.UTF-8

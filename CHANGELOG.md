@@ -4,6 +4,15 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-11-23
+
+### Behoben
+- `zramswap.service` schlägt beim Start nicht mehr fehl: Ist `/dev/zram0` schon vom L4T-BSP als Swap eingerichtet, wird der Dienst übersprungen (#77).
+- Im Image gehören die Teria-Dateien unter `/etc` jetzt root. Vorher behielten sie die Benutzer-ID des Build-Checkouts und hätten von einem normalen Konto geändert werden können (#70).
+
+### Geändert
+- Auf GitHub ist immer die höchste Version „Latest“, auch Patch-Releases. Nachträglich gebaute ältere Versionen übernehmen das nicht mehr (#79).
+
 ## [0.6.1] - 2026-11-23
 
 ### Behoben

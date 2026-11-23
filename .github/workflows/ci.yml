@@ -92,12 +92,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           tag="${GITHUB_REF#refs/tags/}"
+          # Neueste Version (auch Patch) wird „Latest“, ältere Nachzügler nie (#79)
+          newest=$(git ls-remote --tags origin 'v*' | sed 's#.*refs/tags/##; s#\^{}##' | grep -v -- - | sort -uV | tail -1)
+          latest="--latest=false"; [ "$tag" = "$newest" ] && latest="--latest"
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" dist/* --clobber
+            if [ "$tag" = "$newest" ]; then gh release edit "$tag" --latest; fi
           else
-            pre=""; [[ "$tag" == *-* ]] && pre="--prerelease"
+            pre=""; [[ "$tag" == *-* ]] && { pre="--prerelease"; latest="--latest=false"; }
             notes="release-notes/${tag#v}.md"; [ -f "$notes" ] || notes=/dev/null
-            gh release create "$tag" dist/* --title "Teria $tag" --notes-file "$notes" $pre
+            gh release create "$tag" dist/* --title "Teria $tag" --notes-file "$notes" $pre "$latest"
           fi
 
   image:
