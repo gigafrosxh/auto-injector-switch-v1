@@ -428,6 +428,9 @@ def act(action, body):
         return run(["nmcli", "radio", "wifi", "on" if v else "off"])[0] == 0, None
     if action == "wifi-connect":
         ssid, pw = str(body.get("ssid", "")), str(body.get("password", ""))
+        identity = str(body.get("identity", "")).strip()
+        if identity:
+            return wifi_connect_enterprise(ssid, identity, pw)
         cmd = ["nmcli", "dev", "wifi", "connect", ssid] + (["password", pw] if pw else [])
         rc, out = run(cmd, timeout=45)
         return rc == 0, out
@@ -465,9 +468,25 @@ def act(action, body):
     return False, "unbekannte Aktion"
 
 
+def wifi_connect_enterprise(ssid, identity, pw):
+    """WPA2/WPA3-Enterprise (Schule, Firma, eduroam): PEAP mit MSCHAPv2, Benutzername + Passwort (#74)."""
+    if not ssid or len(ssid.encode()) > 32 or len(identity) > 256 or len(pw) > 256:
+        return False, "ungueltige Eingabe"
+    name = "Teria " + ssid
+    run(["nmcli", "connection", "delete", "id", name], timeout=15)
+    rc, out = run(["nmcli", "connection", "add", "type", "wifi", "con-name", name, "ifname", "*", "ssid", ssid,
+                   "wifi-sec.key-mgmt", "wpa-eap", "802-1x.eap", "peap", "802-1x.phase2-auth", "mschapv2",
+                   "802-1x.identity", identity, "802-1x.password", pw, "connection.autoconnect", "yes"], timeout=20)
+    if rc != 0:
+        return False, out
+    rc, out = run(["nmcli", "connection", "up", "id", name], timeout=60)
+    return rc == 0, out
+
+
 def wifi_networks():
     if MOCK:
         return [{"ssid": "Heimnetz", "signal": 88, "secure": True, "active": True},
+                {"ssid": "Schule", "signal": 70, "secure": True, "active": False, "enterprise": True},
                 {"ssid": "Heimnetz-Gast", "signal": 61, "secure": True, "active": False},
                 {"ssid": "FRITZ!Box 7590", "signal": 34, "secure": True, "active": False}]
     nets = {}
@@ -478,7 +497,8 @@ def wifi_networks():
         active = used == "*"
         previous = nets.get(ssid)
         if previous is None or (active, sig) > (previous["active"], previous["signal"]):
-            nets[ssid] = {"ssid": ssid, "signal": sig, "secure": security not in ("", "--"), "active": active}
+            nets[ssid] = {"ssid": ssid, "signal": sig, "secure": security not in ("", "--"), "active": active,
+                          "enterprise": "802.1X" in security}
     return sorted(nets.values(), key=lambda n: (not n["active"], -n["signal"]))
 
 

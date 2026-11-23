@@ -251,7 +251,7 @@ const SETTINGS = {
     return `<div style="font-size:24px;font-weight:500;margin-bottom:12px">Netzwerk</div>
     ${srow("wifi", "WLAN", S.wifi.on ? (S.wifi.ssid ? `Verbunden mit ${esc(S.wifi.ssid)} · ${esc(S.wifi.band || "")}` : "Nicht verbunden") : "Aus", tog(S.wifi.on), "toggle('wifi')")}
     <div class="lbl" style="margin:18px 0 6px">Netze in der Nähe</div>
-    ${WIFI.length ? WIFI.map(n => srow("net:" + n.ssid, esc(n.ssid), `${n.active ? "Verbunden · " : ""}Signal ${n.signal} %${n.secure ? " · geschützt" : ""}`, n.active ? `<span style="color:var(--teal)">${ic("check", 20)}</span>` : (n.secure ? `<span style="color:var(--ink3)">${ic("lock", 18)}</span>` : ""), `connectWifi(this.dataset.key.slice(4),${n.secure})`)).join("") : `<div class="empty">Suche läuft …</div>`}`;
+    ${WIFI.length ? WIFI.map(n => srow("net:" + n.ssid, esc(n.ssid), `${n.active ? "Verbunden · " : ""}Signal ${n.signal} %${n.secure ? " · geschützt" : ""}`, n.active ? `<span style="color:var(--teal)">${ic("check", 20)}</span>` : (n.secure ? `<span style="color:var(--ink3)">${ic("lock", 18)}</span>` : ""), `connectWifi(this.dataset.key.slice(4),${n.secure},${!!n.enterprise})`)).join("") : `<div class="empty">Suche läuft …</div>`}`;
   },
   bluetooth() {
     return `<div style="font-size:24px;font-weight:500;margin-bottom:12px">Bluetooth</div>
@@ -300,13 +300,13 @@ async function power(v) {
   const t = { hekate: "Jetzt in Hekate neu starten?", reboot: "Teria neu starten?", poweroff: "Switch ausschalten?", suspend: "Ruhezustand?" }[v];
   dialog(`<div style="font-size:22px;font-weight:500">${t}</div><div style="display:flex;gap:12px;justify-content:flex-end"><span ${nav("chip", "no", `data-first=1 onclick="closeDialog()"`)}>Abbrechen</span><span ${nav("chip on", "yes", `onclick="closeDialog();api('/api/action/power',{value:'${v}'})"`)}>Ja</span></div>`);
 }
-function connectWifi(ssid, secure) {
+function connectWifi(ssid, secure, enterprise) {
   if (!secure) return doConnect(ssid, "");
-  dialog(`<div style="font-size:22px;font-weight:500">Mit „${esc(ssid)}“ verbinden</div><input id="pw" type="password" placeholder="Passwort" autocomplete="off">
-  <div style="display:flex;gap:12px;justify-content:flex-end"><span ${nav("chip", "kb", `onclick="doAct('keyboard');$('#pw').focus()"`)}>${ic("kbd", 16)} Tastatur</span><span ${nav("chip", "no", `onclick="closeDialog()"`)}>Abbrechen</span><span ${nav("chip on", "go", `data-first=1`)}>Verbinden</span></div>`);
-  $("#dialog [data-key=go]").onclick = () => doConnect(ssid, $("#pw").value);
+  dialog(`<div style="font-size:22px;font-weight:500">Mit „${esc(ssid)}“ verbinden</div>${enterprise ? `<div style="color:var(--ink2);font-size:14px;margin-top:-6px">Firmen- oder Schulnetz: Benutzername und Passwort</div><input id="user" type="text" placeholder="Benutzername" autocomplete="off" autocapitalize="off" spellcheck="false">` : ""}<input id="pw" type="password" placeholder="Passwort" autocomplete="off">
+  <div style="display:flex;gap:12px;justify-content:flex-end"><span ${nav("chip", "kb", `onclick="doAct('keyboard');(($('#user')&&!$('#user').value)?$('#user'):$('#pw')).focus()"`)}>${ic("kbd", 16)} Tastatur</span><span ${nav("chip", "no", `onclick="closeDialog()"`)}>Abbrechen</span><span ${nav("chip on", "go", `data-first=1`)}>Verbinden</span></div>`);
+  $("#dialog [data-key=go]").onclick = () => doConnect(ssid, $("#pw").value, enterprise ? $("#user").value : "");
 }
-async function doConnect(ssid, pw) { closeDialog(); toast("Verbinde mit " + ssid + " …"); const r = await api("/api/action/wifi-connect", { ssid, password: pw }); toast(r.ok ? "Verbunden" : "Verbindung fehlgeschlagen"); refresh(); }
+async function doConnect(ssid, pw, identity = "") { closeDialog(); toast("Verbinde mit " + ssid + " …"); const r = await api("/api/action/wifi-connect", { ssid, password: pw, identity }); toast(r.ok ? "Verbunden" : "Verbindung fehlgeschlagen"); refresh(); }
 
 // ---------------------------------------------------------------- Schnellmenü
 function toggleQuick(on = !$("#quick").classList.contains("on")) {
